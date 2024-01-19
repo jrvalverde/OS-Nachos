@@ -1,0 +1,36 @@
+These are the patches to Nachos required for g++ version 2.6 and 
+above.  The first is because g++ has started enforcing the use
+of lower case true and false as keywords.  The second is
+because g++ continually redefines the UNIX system call interface!
+
+tom
+-------------
+
+In utility.h, replace:
+
+typedef enum { FALSE = 0, TRUE = 1 } bool;   // Boolean values.
+
+with:
+
+// typedef enum { FALSE = 0, TRUE = 1 } bool;   // Boolean values.
+
+#define TRUE  true
+#define FALSE  false
+
+In sysdep.cc, replace:
+
+#ifdef HOST_SNAKE
+// int creat(char *name, unsigned short mode);
+// int open(char *name, int flags, ...);
+#else
+int creat(char *name, int mode);
+int open(char *name, int flags, int mode);
+
+with
+
+#ifdef HOST_SNAKE
+// int creat(char *name, unsigned short mode);
+// int open(char *name, int flags, ...);
+#else
+// int creat(char *name, int mode);
+// int open(char *name, int flags, int mode);

@@ -1,0 +1,135 @@
+I ftp'ed nachos3.2.tar from ftp.cs.berkeley.edu.
+The cross directory contains the files ftp'ed from prep.ai.mit.edu
+for generating the cross-compiler.
+
+\section{Changes needed to port nachos 3.2 to linux on a PC}
+
+All the changes are in nachos-3.2/code.
+
+\item
+Makefile.dep
+a) Change HOST to -DHOST_i386 with commenting out
+
+\item
+Makefile.common
+a) When the depend target runs, ed complains about its input file.
+Cause a ``q'' to be added to ed's input file
+ by adding a line to
+the depend target code in Makefile.common.
+
+\item
+threads/utility.cc
+a) Comment out from #ifdef HOST_SNAKE through the stdarg.h lines.
+Add a line #include <stdarg.h>.
+
+\item
+threads/switch.s
+a) Deleted all but the HOST_i386 case because the assembler for some
+reason was trying to assemble the HOST_MIPS code.
+
+\item
+machine/sysdep.cc
+a) Conflicting types for creat() and open() so commented out their
+declarations in machine/sysdep.cc
+b) The fifth argument of the sendto() function that is 
+called in
+SendToSocket() has an argument conflict. The call type does not
+match the declaration in /usr/include/sys/socket.h. So I recast the
+argument in the call in SendToSocket to match the declaration.
+c) NOTE: Compilation of the nachos networks directory currently fails
+with an error that the sockets receivefrom() function is not being
+used correctly.
+d) Error saying that there is no getpagesize() function. I added at
+the top of sysdep.cc a #include <unistd.h> which is where
+getpagesize() is declared.
+e
+) In AllocBoundedArray() and DeallocBoundedArray() I commented out
+calls to the mprotect() system call that I could not find on linux
+(seems to be in /usr/include/linux/sys.h, but a #include of this
+file did not solve the problem).
+f) Commented out declarations at the top of sysdep.cc for unlink(),
+read(), write(), and lseek() that were conflicting with slightly
+different linux declarations.
+
+
+\section{Steps for creating a cross-compiler for the i486-linux host
+and mips target}
+
+\item
+Follow the cross-compi
+ler directions in the README file in
+nachos3.2.tar with the following corrections.
+a) Don't use the gccLocal environment variable. Just type /usr/local
+everywhere instead since linux does not make the substitution.
+
+b) In the calls to the configure program the host name is i486-linux.
+
+c) In the call to the ar program the command is ``ar rc libgcc.a
+/dev/null''. The ``c'' flag is a modifier so an operation flag, the
+``r'', also had to be specified.
+
+d) Tom says to remove any dependency on cross-test and enq
+uire in the
+Makefile in the gcc* directory. What I did was commented out the line
+``ENQUIRE = enquire'' and replaced it with ``ENQUIRE = '' and
+commented out the line ``CROSS_TEST = cross-test'' and replaced it
+with ``CROSS_TEST = ''.
+
+e) The command ``make LANGUAGES=c'' in the gcc* directory stops on an
+error in the sdbout.c file on line 57. The change I made was to change
+that line 57 from #include <syms.h> to #include "gsyms.h" since the
+/usr/include directory does not have a syms.h file, but there is a 
+
+gsyms.h file in the current directory.
+
+f) In code/test/Makefile change the path for GCCDIR when
+cross-compiling to /usr/local/decstation-ultrix/bin/ which is where
+the cross-compiler directions places the executables.
+
+
+
+From villano@cps.cps.na.cnr.it Thu Nov 30 03:08:14 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.35.123]) by orodruin.CS.Berkeley.EDU (8.7.Gamma.0/8.7.Gamma.0) with SMTP id DAA18739 for <tea@orodruin.CS.Berkeley.EDU>; Thu, 30 Nov 1995 03:08:10 -0800 (PST)
+Received: from arco.na.cnr.it (arco.na.cnr.it [140.164.1.1]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with SMTP id DAA13934 for <tea@cs.berkeley.edu>; Thu, 30 Nov 1995 03:07:53 -0800
+Received: from cps.na.cnr.it ([140.164.14.3]) by arco.na.cnr.it (5.65c+/1.34)
+	id AA24603; Thu, 30 Nov 1995 09:26:46 -0500
+Received: from sugaree.dis.unina.it (villano.dis.unina.it) by cps.na.cnr.it (4.1/SMI-4.1)
+	id AA07636; Thu, 30 Nov 95 09:21:38 +0100
+Message-Id: <9511300821.AA07636@cps.na.cnr.it>
+Comments: Authenticated sender is <villano@cps.cps.na.cnr.it>
+From: "Umberto Villano" <villano@cps.cps.na.cnr.it>
+Organization: IRSIP, CNR
+To: tea@cs.berkeley.edu
+Date: Thu, 30 Nov 1995 09:25:08 +0100
+Subject: linux kernel version for Nachos
+Return-Receipt-To: "Umberto Villano" <villano@cps.cps.na.cnr.it>
+Priority: normal
+X-Mailer: Pegasus Mail for Windows (v2.20)
+Status: R
+
+Tom,
+
+the letter by Alan Cox I forwarded you yesterday 
+said "a later 1.3.x kernel", not " a kernel 1.3.x or later".
+Alan (who is responsible for the Linux networking support)
+meant that the problem has been fixed in one of the latest
+patches to the 1.3.x version of the kernel. Version 1.3 is
+not a stable kernel release, but an experimental one, and
+ther are at the moment forty patches or so.
+I strongly advise to anyone working on a Linux system 
+to postpone as far as possible the network assignment, and
+to wait for the next stable kernel release (the forthcoming 1.4).
+
+Cheers
+
+Umberto
+
+===================================================
+Umberto Villano        
+IRSIP, CNR            tel:+39-81-7683290
+Via Claudio 21        fax:+39-81-2391826
+I-80125 Napoli        e-mail: villano@cps.na.cnr.it 
+Italy
+===================================================
+
+

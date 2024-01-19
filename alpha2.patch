@@ -1,0 +1,493 @@
+From roberto@psice.unibo.it Sun Jul  2 23:40:20 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.34.35]) by orodruin.CS.Berkeley.EDU (8.6.10/8.7.0.Beta0) with ESMTP id XAA14098 for <tea@orodruin.CS.Berkeley.EDU>; Sun, 2 Jul 1995 23:40:18 -0700
+Received: from monet.psice.unibo.it (monet.psice.unibo.it [137.204.210.2]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with ESMTP id XAA29847 for <tea@CS.Berkeley.EDU>; Sun, 2 Jul 1995 23:36:28 -0700
+Received: from [137.204.210.5] (teta2.psice.unibo.it [137.204.210.5]) by monet.psice.unibo.it (8.6.11/8.6.11) with SMTP id HAA00102 for <tea@CS.Berkeley.EDU>; Mon, 3 Jul 1995 07:37:21 +0100
+X-NUPop-Charset: English
+Date: Mon, 3 Jul 1995 08:35:22 +0000 (GMT)
+From: "Roberto Rossi" <roberto@psice.unibo.it>
+Sender: roberto@monet.psice.unibo.it
+Reply-To: roberto@psice.unibo.it
+Message-Id: <30954.roberto@psice.unibo.it>
+To: tea@CS.Berkeley.EDU
+Subject: Diffs for porting of Nachos v3.2 on DEC ALPHA/OSF1
+Status: RO
+
+Here are the diffs for the porting of Nachos v3.2 on the DEC ALPHA OSF/1
+and Intel 386 Linux platforms. I successfully used Nachos v3.2 on DEC ALPHA
+running OSF/1 v2.1 and Intel 386 running Linux kernel v1.2.1, both with gcc
+v2.6.3 and binutils v2.5.2. If you have questions about my work, please
+send me an email. Please, let me know about future Nachos development.
+
+Best regards,
+
+-----------------------------
+Roberto Rossi
+Computer Science Course
+University of Bologna
+Via Sacchi, 3
+47023 CESENA - ITALY
+email: roberto@csr.unibo.it
+       roberto@psice.unibo.it
+Tel. : +39-547-642807
+Fax. : +39-547-610100
+-----------------------------
+
+***** diffs start *****
+
+diff nachos-3.2/code/machine/console.cc nachos-3.2-alpha-osf1/code/machine/console.cc
+21c21
+< static void ConsoleReadPoll(int c) 
+---
+> static void ConsoleReadPoll(_int c) 
+23c23
+< static void ConsoleWriteDone(int c)
+---
+> static void ConsoleWriteDone(_int c)
+40c40
+< 		VoidFunctionPtr writeDone, int callArg)
+---
+> 		VoidFunctionPtr writeDone, _int callArg)
+59c59
+<     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, ConsoleReadInt);
+---
+>     interrupt->Schedule(ConsoleReadPoll, (_int)this, ConsoleTime, ConsoleReadInt);
+92c92
+<     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, 
+---
+>     interrupt->Schedule(ConsoleReadPoll, (_int)this, ConsoleTime, 
+148c148
+<     interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
+---
+>     interrupt->Schedule(ConsoleWriteDone, (_int)this, ConsoleTime,
+
+
+diff nachos-3.2/code/machine/console.h nachos-3.2-alpha-osf1/code/machine/console.h
+41c41
+< 	VoidFunctionPtr writeDone, int callArg);
+---
+> 	VoidFunctionPtr writeDone, _int callArg);
+66c66
+<     int handlerArg;			// argument to be passed to the
+---
+>     _int handlerArg;			// argument to be passed to the 
+
+
+
+diff nachos-3.2/code/machine/network.cc nachos-3.2-alpha-osf1/code/machine/network.cc
+15c15
+< static void NetworkReadPoll(int arg)
+---
+> static void NetworkReadPoll(_int arg)
+17c17
+< static void NetworkSendDone(int arg)
+---
+> static void NetworkSendDone(_int arg)
+25c25
+< 	VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg)
+---
+> 	VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, _int callArg)
+45c45
+<     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+---
+>     interrupt->Schedule(NetworkReadPoll, (_int)this, NetworkTime, NetworkRecvInt);
+61c61
+<     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+---
+>     interrupt->Schedule(NetworkReadPoll, (_int)this, NetworkTime, NetworkRecvInt);
+111c111
+<     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
+---
+>     interrupt->Schedule(NetworkSendDone, (_int)this, NetworkTime, NetworkSendInt);
+
+
+diff nachos-3.2/code/machine/network.h nachos-3.2-alpha-osf1/code/machine/network.h
+58c58
+<   	  VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg);
+---
+>   	  VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, _int callArg);
+92c92
+<     int handlerArg;		// Argument to be passed to interrupt handler
+---
+>     _int handlerArg;		// Argument to be passed to interrupt handler
+
+
+diff nachos-3.2/code/machine/disk.cc nachos-3.2-alpha-osf1/code/machine/disk.cc
+29c29
+< static void DiskDone(int arg) { ((Disk *)arg)->HandleInterrupt(); }
+---
+> static void DiskDone(_int arg) { ((Disk *)arg)->HandleInterrupt(); }
+43c43
+< Disk::Disk(char* name, VoidFunctionPtr callWhenDone, int callArg)
+---
+> Disk::Disk(char* name, VoidFunctionPtr callWhenDone, _int callArg)
+132c132
+<     interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+---
+>     interrupt->Schedule(DiskDone, (_int) this, ticks, DiskInt);
+152c152
+<     interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+---
+>     interrupt->Schedule(DiskDone, (_int) this, ticks, DiskInt);
+
+
+diff nachos-3.2/code/machine/disk.h nachos-3.2-alpha-osf1/code/machine/disk.h
+57c57
+<     Disk(char* name, VoidFunctionPtr callWhenDone, int callArg);
+---
+>     Disk(char* name, VoidFunctionPtr callWhenDone, _int callArg);
+82c82
+<     int handlerArg;			// Argument to interrupt handler 
+---
+>     _int handlerArg;			// Argument to interrupt handler 
+
+
+diff nachos-3.2/code/machine/mipssim.cc nachos-3.2-alpha-osf1/code/machine/mipssim.cc
+648c648
+< 	    negative = !negative;
+---
+> 	    negative = (bool)!negative;
+652c652
+< 	    negative = !negative;
+---
+> 	    negative = (bool)!negative;
+
+
+
+diff nachos-3.2/code/machine/timer.h nachos-3.2-alpha-osf1/code/machine/timer.h
+29c29
+<     Timer(VoidFunctionPtr timerHandler, int callArg, bool doRandom);
+---
+>     Timer(VoidFunctionPtr timerHandler, _int callArg, bool doRandom);
+45c45
+<     int arg;			// argument to pass to interrupt handler
+---
+>     _int arg;			// argument to pass to interrupt handler
+
+
+diff nachos-3.2/code/machine/interrupt.cc nachos-3.2-alpha-osf1/code/machine/interrupt.cc
+44c44
+< PendingInterrupt::PendingInterrupt(VoidFunctionPtr func, int param, int time, 
+---
+> PendingInterrupt::PendingInterrupt(VoidFunctionPtr func, _int param, int time, 
+265c265
+< Interrupt::Schedule(VoidFunctionPtr handler, int arg, int fromNow, IntType type)
+---
+> Interrupt::Schedule(VoidFunctionPtr handler, _int arg, int fromNow, IntType type)
+345c345
+< PrintPending(int arg)
+---
+> PrintPending(_int arg)
+
+
+diff nachos-3.2/code/machine/interrupt.h nachos-3.2-alpha-osf1/code/machine/interrupt.h
+61c61
+<     PendingInterrupt(VoidFunctionPtr func, int param, int time, IntType kind);
+---
+>     PendingInterrupt(VoidFunctionPtr func, _int param, int time, IntType kind);
+67c67
+<     int arg;                    // The argument to the function.
+---
+>     _int arg;           // The argument to the function.
+110c110
+< 	int arg, int when, IntType type);// at time ``when''.  This is called
+---
+> 	_int arg, int when, IntType type);// at time ``when''.  This is called
+
+
+diff nachos-3.2/code/machine/timer.cc nachos-3.2-alpha-osf1/code/machine/timer.cc
+27c27
+< static void TimerHandler(int arg)
+---
+> static void TimerHandler(_int arg)
+44c44
+< Timer::Timer(VoidFunctionPtr timerHandler, int callArg, bool doRandom)
+---
+> Timer::Timer(VoidFunctionPtr timerHandler, _int callArg, bool doRandom)
+51c51
+<     interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+---
+>     interrupt->Schedule(TimerHandler, (_int) this, TimeOfNextInterrupt(), 
+65c65
+<     interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+---
+>     interrupt->Schedule(TimerHandler, (_int) this, TimeOfNextInterrupt(), 
+
+
+diff nachos-3.2/code/machine/sysdep.cc nachos-3.2-alpha-osf1/code/machine/sysdep.cc
+44c44,46
+< 
+---
+> #ifdef HOST_ALPHA
+> #include <sys/time.h>
+> #endif
+51a54,55
+> #ifndef HOST_ALPHA
+> #if !(defined(HOST_i386) && defined(Linux))
+53a58,59
+> #endif
+> #endif
+82a89,92
+> int getpagesize();
+> 
+> #ifndef HOST_ALPHA
+> #if !(defined(HOST_i386) && defined(Linux))
+83a94,95
+> #endif
+> #endif
+248c260,261
+< bool
+---
+> // bool 
+> int
+353c366,370
+<         printf("called: %x, got back %d, %d\n", buffer, retVal, errno);
+---
+> #ifdef HOST_ALPHA
+>         printf("called: %lx, got back %d, %d\n", (long) buffer, retVal, errno);
+> #else
+>         printf("called: %x, got back %d, %d\n", (int) buffer, retVal, errno);
+> #endif
+369a387,390
+> #if defined(HOST_ALPHA) || (defined(HOST_i386) && defined(Linux))
+>     retVal = sendto(sockID, buffer, packetSize, 0,
+> 			  (struct sockaddr *) &uName, sizeof(uName));
+> #else
+371a393
+> #endif
+384a407,409
+> #ifdef HOST_ALPHA
+>     (void)signal(SIGINT, (void (*)(int)) func);
+> #else
+385a411
+> #endif
+
+
+diff nachos-3.2/code/machine/sysdep.h nachos-3.2-alpha-osf1/code/machine/sysdep.h
+30c30,31
+< extern bool Unlink(char *name);
+---
+> //extern bool Unlink(char *name);
+> extern int Unlink(char *name);
+
+
+
+diff nachos-3.2/code/network/post.cc nachos-3.2-alpha-osf1/code/network/post.cc
+148c148
+< static void PostalHelper(int arg)
+---
+> static void PostalHelper(_int arg)
+150c150
+< static void ReadAvail(int arg)
+---
+> static void ReadAvail(_int arg)
+152c152
+< static void WriteDone(int arg)
+---
+> static void WriteDone(_int arg)
+187c187
+<     network = new Network(addr, reliability, ReadAvail, WriteDone, (int) this);
+---
+>     network = new Network(addr, reliability, ReadAvail, WriteDone, (_int) this);
+194c194
+<     t->Fork(PostalHelper, (int) this);
+---
+>     t->Fork(PostalHelper, (_int) this);
+276a277,279
+> #ifdef HOST_ALPHA
+>     bcopy((const char *)&mailHdr, buffer, sizeof(MailHeader));
+> #else
+277a281
+> #endif
+
+
+
+diff nachos-3.2/code/bin/Makefile nachos-3.2-alpha-osf1/code/bin/Makefile
+10a11,12
+> include ../Makefile.dep
+> 
+13c15,19
+< # CFLAGS= -I./ -I../threads -DHOST_IS_BIG_ENDIAN
+---
+> # CFLAGS= -I./ -I../threads $(HOST) -DHOST_IS_BIG_ENDIAN
+> # all: coff2noff
+> 
+> # If the host is ALPHA (DEC-ALPHA OSF/1, etc):
+> # change to (disassemble and coff2flat not supported):
+17c23
+< CFLAGS=-I./ -I../threads
+---
+> CFLAGS=-I./ -I../threads $(HOST)
+20c26
+< all: coff2noff disassemble 
+---
+> all: coff2noff coff2flat disassemble
+
+
+
+diff nachos-3.2/code/bin/coff.h nachos-3.2-alpha-osf1/code/bin/coff.h
+4a5,10
+> #ifdef HOST_ALPHA		/* Needed because of gcc uses 64 bit long  */
+> #define _long int		/* integers on the DEC ALPHA architecture. */
+> #else
+> #define _long long
+> #endif
+>
+8,10c14,16
+<         long            f_timdat;       /* time & date stamp */
+<         long            f_symptr;       /* file pointer to symbolic header */
+<         long            f_nsyms;        /* sizeof(symbolic hdr) */
+---
+>         _long           f_timdat;       /* time & date stamp */
+>         _long           f_symptr;       /* file pointer to symbolic header */
+>         _long           f_nsyms;        /* sizeof(symbolic hdr) */
+23,32c29,38
+<         long    tsize;          /* text size in bytes, padded to DW bdry*/
+<         long    dsize;          /* initialized data "  "                */
+<         long    bsize;          /* uninitialized data "   "             */
+<         long    entry;          /* entry pt.                            */
+<         long    text_start;     /* base of text used for this file      */
+<         long    data_start;     /* base of data used for this file      */
+<         long    bss_start;      /* base of bss used for this file       */
+<         long    gprmask;        /* general purpose register mask        */
+<         long    cprmask[4];     /* co-processor register masks          */
+<         long    gp_value;       /* the gp value used for this object    */
+---
+>         _long    tsize;         /* text size in bytes, padded to DW bdry*/
+>         _long    dsize;         /* initialized data "  "                */
+>         _long    bsize;         /* uninitialized data "   "             */
+>         _long    entry;         /* entry pt.                            */
+>         _long    text_start;    /* base of text used for this file      */
+>         _long    data_start;    /* base of data used for this file      */
+>         _long    bss_start;     /* base of bss used for this file       */
+>         _long    gprmask;       /* general purpose register mask        */
+>         _long    cprmask[4];    /* co-processor register masks          */
+>         _long    gp_value;      /* the gp value used for this object    */
+39,44c45,50
+<         long            s_paddr;        /* physical address, aliased s_nlib */
+<         long            s_vaddr;        /* virtual address */
+<         long            s_size;         /* section size */
+<         long            s_scnptr;       /* file ptr to raw data for section */
+<         long            s_relptr;       /* file ptr to relocation */
+<         long            s_lnnoptr;      /* file ptr to gp histogram */
+---
+>         _long           s_paddr;        /* physical address, aliased s_nlib */
+>         _long           s_vaddr;        /* virtual address */
+>         _long           s_size;         /* section size */
+>         _long           s_scnptr;       /* file ptr to raw data for section */
+>         _long           s_relptr;       /* file ptr to relocation */
+>         _long           s_lnnoptr;      /* file ptr to gp histogram */
+47c53
+<         long            s_flags;        /* flags */
+---
+>         _long           s_flags;        /* flags */
+
+
+
+diff nachos-3.2/code/threads/list.cc nachos-3.2-alpha-osf1/code/threads/list.cc
+145c145
+<        (*func)((int)ptr->item);
+---
+>        (*func)((_int)ptr->item);
+
+
+
+diff nachos-3.2/code/threads/switch.h nachos-3.2-alpha-osf1/code/threads/switch.h
+8c8,9
+<  * 	This file currently supports the DEC MIPS and SUN SPARC architectures.
+---
+>  * 	This file currently supports the DEC MIPS, SUN SPARC, HP PA-RISC,
+>  *  Intel 386 and DEC ALPHA architectures.
+153c154,196
+< #endif
+---
+> #endif // HOST_i386
+> 
+> // Roberto Rossi (roberto@csr.unibo.it) - 1994
+> #ifdef HOST_ALPHA
+> 
+> #include <regdef.h>
+> 
+> /* Registers that must be saved during a context switch.
+>  * These are the offsets from the beginning of the Thread object,
+>  * in bytes, used in switch.s
+> */
+> #define SP  0
+> #define S0  8
+> #define S1 16
+> #define S2 24
+> #define S3 32
+> #define S4 40
+> #define S5 48
+> #define FP 56
+> #define GP 64
+> #define PC 72
+> 
+> /* To fork a thread, we set up its saved register state, so that
+>  * when we switch to the thread, it will start running in ThreadRoot.
+>  *
+>  * The following are the initial registers we need to set up to
+>  * pass values into ThreadRoot (for instance, containing the procedure
+>  * for the thread to run).  The first set is the registers as used
+>  * by ThreadRoot; the second set is the locations for these initial
+>  * values in the Thread object -- used in Thread::AllocateStack().
+>  */
+> #define InitialPC	s0
+> #define InitialArg	s1
+> #define WhenDonePC	s2
+> #define StartupPC	s3
+>
+> #define PCState		(PC/8-1)
+> #define FPState		(FP/8-1)
+> #define InitialPCState	(S0/8-1)
+> #define InitialArgState	(S1/8-1)
+> #define WhenDonePCState	(S2/8-1)
+> #define StartupPCState	(S3/8-1)
+> #endif // HOST_ALPHA
+
+
+diff nachos-3.2/code/threads/switch.s nachos-3.2-alpha-osf1/code/threads/switch.s
+12a13
+>  *		DEC ALPHA
+73c74
+< 	jal 	WhenDonePC	# when we're done, call clean up procedure
+---
+> 	jal 	WhenDonePC	# when we are done, call clean up procedure
+341c342,412
+< #endif
+---
+> #endif // HOST_i386
+> 
+> // Roberto Rossi (roberto@csr.unibo.it) - 1994
+> #ifdef HOST_ALPHA
+>
+> 	.set noreorder
+> 	.set volatile
+> 	.set noat
+> 
+> 	.text
+> 	.align 3
+> 
+> 	.globl ThreadRoot
+> 	.ent ThreadRoot
+> ThreadRoot:
+> 	ldgp gp,0(pv)
+> 	.frame sp,0,ra,0
+> 	.prologue 1
+> 
+> 	mov StartupPC,pv
+> 	jsr ra,(pv),0		# call startup procedure
+> 	ldgp gp,0(ra)
+> 	mov InitialArg,a0
+> 	mov InitialPC,pv
+> 	jsr ra,(pv),0		# call main procedure
+> 	ldgp gp,0(ra)
+> 	mov WhenDonePC,pv
+> 	jsr ra,(pv),0		# when we are done, call the cleanup procedure
+> 	ldgp gp,0(ra)
+> 
+> 	# NEVER REACHED
+> 	ret zero,(ra),1
+> 	.end ThreadRoot
+> 
+> 	# a0 -- pointer to old thread
+> 	# a

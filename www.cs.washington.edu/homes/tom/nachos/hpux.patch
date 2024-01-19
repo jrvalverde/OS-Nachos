@@ -1,0 +1,139 @@
+From chip@hpclbis.cup.hp.com Thu Nov  2 22:20:49 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.35.123]) by orodruin.CS.Berkeley.EDU (8.7.Gamma.0/8.7.Gamma.0) with SMTP id WAA03506 for <tea@orodruin.CS.Berkeley.EDU>; Thu, 2 Nov 1995 22:20:48 -0800 (PST)
+Received: from hp.com (hp.com [15.255.152.4]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with ESMTP id WAA14050 for <nachos@cs.berkeley.edu>; Thu, 2 Nov 1995 22:20:46 -0800
+Received: from hpclbis.cup.hp.com by hp.com with SMTP
+	(1.37.109.16/15.5+ECS 3.3) id AA288679643; Thu, 2 Nov 1995 22:20:44 -0800
+Received: by hpclbis.cup.hp.com with SMTP
+	(1.37.109.8/15.5+IOS 3.20+cup+OMrelay) id AA10338; Thu, 2 Nov 1995 22:20:42 -0800
+Message-Id: <9511030620.AA10338@hpclbis.cup.hp.com>
+To: nachos@cs.berkeley.edu
+Cc: cs240a@crissy.stanford.edu, chip@hpclbis.cup.hp.com
+Subject: Updated Nachos port to HP-UX
+Reply-To: Chip Chapin <chip@hpclbis.cup.hp.com>
+X-Mailer: mh6.7
+X-Moon: the moon is waxing gibbous (84% illuminated)
+Date: Thu, 02 Nov 95 22:20:41 -0800
+From: Chip Chapin <chip@hpclbis.cup.hp.com>
+Status: RO
+
+
+Dear Nachos folks,
+
+I pulled v3.4 from your WWW page, but found that the HP-UX version
+didn't work.  On investigation I determined that the code was
+generally incorrect for versions of HP-UX newer than 7.x (the current
+version is 10.x).  Since I work in HP's compiler lab, and have a
+reasonable understanding of these matters, I've corrected the problems
+as follows:
+
+    -- Modified switch.s to conform to current HP-UX calling
+       conventions.  This required a different convention for saving
+       the return pointer during a call.
+       
+    -- Found and fixed a problem in Thread::StackAllocate().  By
+       convention on modern HP-UX versions, function pointers are
+       actually "plabel" descriptors, not direct code pointers.  It
+       was necessary to decode the plabel to put actual code addresses
+       into the machineState for initial thread startup.
+       
+Various other changes were required to deal with differences in
+include files, and to support the use of HP C++ in addition to g++.
+The advantage of HP C++ was that it supports use of HP's xdb debugger.
+
+The important changes are actually quite small, so I'm including
+fragments below.  
+
+I know your WWW page said to "contact tea@... for more info on HP-UX
+version", but it was the middle of the night and I needed it right
+away (to get my HW done for Mendel Rosenblum).  Perhaps the changes
+will be of some use to you.
+
+
+DISCLAIMER: No claims are made that this code is great style.  But it
+            should illustrate what needs to be done.
+
+Changes to thread.cc:
+
+ Added code:
+
+    #ifdef HOST_SNAKE
+    int plabel2addr(int plabel)
+    {
+	if (plabel & 0x02) {
+	    // L-Field is set.  This is a PLT pointer
+	    plabel -= 2;	// Get rid of the L bit
+	    return (*(int *)plabel);
+	} else {
+	    // L-field not set.
+	    return plabel;
+	}
+    }
+    #else
+    #define plabel2addr(p)	p
+    #endif
+
+
+ Modified code in StackAllocate:
+    
+    // For PA-RISC compilers this was not correct!
+    // Instead of storing the addresses, we were storing the plabels.
+    // The new routine "plabel2addr" does the conversion, or is a NOP for
+    // non-HP systems.
+    //      -- Chip Chapin, 10/31/95
+    machineState[PCState]         = plabel2addr((int)ThreadRoot);
+    machineState[StartupPCState]  = plabel2addr((int) StartThread);
+    machineState[InitialPCState]  = plabel2addr((int) func);
+    machineState[InitialArgState] = arg;
+    machineState[WhenDonePCState] = plabel2addr((int) ThreadFinish);
+
+
+Modified code in switch.s (only ThreadRoot was affected.  The key
+feature is the use of STW r31,-24(sp).  Note that .ENTER allocates a
+local frame.
+
+    #ifdef HOST_SNAKE
+
+	;rp = r2,   sp = r30
+	;arg0 = r26,  arg1 = r25,  arg2 = r24,  arg3 = r23
+
+	    .SPACE  $TEXT$
+	    .SUBSPA $CODE$
+    ThreadRoot
+	    .PROC
+	    .CALLINFO CALLER,FRAME=0
+	    .ENTER
+
+	    .CALL
+	    ble  0(%r6)             ;call StartupPC
+    ;;;     or   %r31, 0, %rp       ;put return address in proper register
+	    stw  %r31, -24(%sp)     ;put return address in proper stack
+				    ;location for StartupPC export stub.
+
+	    or   %r4, 0, %arg0      ;load InitialArg
+	    .CALL   ;in=26
+	    ble  0(%r3)             ;call InitialPC
+    ;;;     or   %r31, 0, %rp       ;put return address in proper register
+	    stw  %r31, -24(%sp)     ;put return address in proper stack
+				    ;location for StartupPC export stub.
+	    .CALL
+	    ble  0(%r5)             ;call WhenDonePC
+    ;;;     or   %r31, 0, %rp       ;shouldn't really matter - doesn't return
+	    stw  %r31, -24(%sp)     ;put return address in proper stack
+				    ;location for StartupPC export stub.
+	    .LEAVE
+
+	    .PROCEND
+
+
+Thanks for Nachos.  I am finding it to be a helpful and enjoyable tool
+for learning more about OS.
+
+// Chip
+
+ --------------------------------------------------------------------
+ Chip Chapin, Hewlett-Packard Company, STD California Language Lab
+ Internet:  chip@cup.hp.com             HPDesk: Chip Chapin/hp4700/um
+ USMail:    MS42U5; 11000 Wolfe Road; Cupertino, CA  95014-9804;  USA
+ Phone:     408/447-5735    Fax: 408/447-4924    HPTelnet: 1-447-5735
+ --------------------------------------------------------------------
+

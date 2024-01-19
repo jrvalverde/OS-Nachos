@@ -1,0 +1,90 @@
+I ftp'ed nachos3.2.tar from ftp.cs.berkeley.edu.
+The cross directory contains the files ftp'ed from prep.ai.mit.edu
+for generating the cross-compiler.
+
+\section{Changes needed to port nachos 3.2 to linux on a PC}
+
+All the changes are in nachos-3.2/code.
+
+\item
+Makefile.dep
+a) Change HOST to -DHOST_i386 with commenting out
+
+\item
+Makefile.common
+a) When the depend target runs, ed complains about its input file.
+Cause a ``q'' to be added to ed's input file
+ by adding a line to
+the depend target code in Makefile.common.
+
+\item
+threads/utility.cc
+a) Comment out from #ifdef HOST_SNAKE through the stdarg.h lines.
+Add a line #include <stdarg.h>.
+
+\item
+threads/switch.s
+a) Deleted all but the HOST_i386 case because the assembler for some
+reason was trying to assemble the HOST_MIPS code.
+
+\item
+machine/sysdep.cc
+a) Conflicting types for creat() and open() so commented out their
+declarations in machine/sysdep.cc
+b) The fifth argument of the sendto() function that is 
+called in
+SendToSocket() has an argument conflict. The call type does not
+match the declaration in /usr/include/sys/socket.h. So I recast the
+argument in the call in SendToSocket to match the declaration.
+c) NOTE: Compilation of the nachos networks directory currently fails
+with an error that the sockets receivefrom() function is not being
+used correctly.
+d) Error saying that there is no getpagesize() function. I added at
+the top of sysdep.cc a #include <unistd.h> which is where
+getpagesize() is declared.
+e
+) In AllocBoundedArray() and DeallocBoundedArray() I commented out
+calls to the mprotect() system call that I could not find on linux
+(seems to be in /usr/include/linux/sys.h, but a #include of this
+file did not solve the problem).
+f) Commented out declarations at the top of sysdep.cc for unlink(),
+read(), write(), and lseek() that were conflicting with slightly
+different linux declarations.
+
+
+\section{Steps for creating a cross-compiler for the i486-linux host
+and mips target}
+
+\item
+Follow the cross-compi
+ler directions in the README file in
+nachos3.2.tar with the following corrections.
+a) Don't use the gccLocal environment variable. Just type /usr/local
+everywhere instead since linux does not make the substitution.
+
+b) In the calls to the configure program the host name is i486-linux.
+
+c) In the call to the ar program the command is ``ar rc libgcc.a
+/dev/null''. The ``c'' flag is a modifier so an operation flag, the
+``r'', also had to be specified.
+
+d) Tom says to remove any dependency on cross-test and enq
+uire in the
+Makefile in the gcc* directory. What I did was commented out the line
+``ENQUIRE = enquire'' and replaced it with ``ENQUIRE = '' and
+commented out the line ``CROSS_TEST = cross-test'' and replaced it
+with ``CROSS_TEST = ''.
+
+e) The command ``make LANGUAGES=c'' in the gcc* directory stops on an
+error in the sdbout.c file on line 57. The change I made was to change
+that line 57 from #include <syms.h> to #include "gsyms.h" since the
+/usr/include directory does not have a syms.h file, but there is a 
+
+gsyms.h file in the current directory.
+
+f) In code/test/Makefile change the path for GCCDIR when
+cross-compiling to /usr/local/decstation-ultrix/bin/ which is where
+the cross-compiler directions places the executables.
+
+
+

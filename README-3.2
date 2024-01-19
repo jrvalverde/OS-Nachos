@@ -1,0 +1,14 @@
+
+This is just to let you know that there is a "show stopper" bug
+in Nachos version 3.1.  (The bug does not exist in 3.0, for those
+of you using that version.)  The bug exhibits itself as seg faults
+for some programs that use multiple threads.  I have fixed this bug, and 
+the fix is available as Nachos, version 3.2, available from 
+ftp.cs.berkeley.edu.
+
+Anyone currently using 3.1 should immediately grab the new version.
+Those using 3.0 can grab the new version at your leisure; the two
+advantages to 3.2 over 3.0 are: (i) works on SPARCS and (ii) unmapped 
+pages bounding each thread execution stack, to automatically check for 
+stack overflow/underflow.  It was this second feature that caused
+the bug requiring this new release.

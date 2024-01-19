@@ -1,0 +1,118 @@
+1
+Shouldn't condition variables be bounded to a particular lock?  It would be
+possible to wait on or signal a condition variable by using different
+locks, as long as the waiting/signaling process holds the lock used.
+---------------------------------------------------------------------------
+It is possible but as long as we check to make sure that the signal
+and wait is on the same lock (ie. compare addresses of the locks),
+then it's fine.
+
+1
+Are there specific locations where Nachos, gmake and gcc should be installed 
+to?
+----------------------------------------------------------------------------
+No. The nachos files should be in the directories they come in the .tar file
+but there's no specific directories for gmake and gcc.
+
+1
+Is it possible for instructors to obtain sample solutions to the assignments?
+-----------------------------------------------------------------------------
+Standard solutions are not yet available.  We don have student versions of
+the solutions but there's no guarantee on how good they are.
+
+3
+Where can I obtain gmake?
+-------------------------
+prep.ai.mit.edu
+
+1
+Is there a newsgroup discussion on NACHOS?
+------------------------------------------
+We have alt.os.nachos but many people don't have access to it.
+We're trying to propose a different nachos newsgroup in comp.
+
+1
+Is the simulator adaptable to different projects?  Namely small kernel
+with thread management, IPC, and user-level server for the filesystem.
+-----------------------------------------------------------------------
+Yes.  Since nachos is done in complete parts, it's possible to port it
+to seperate processes and use some sort of IPC.  Is it easy?  No.
+
+1
+We don't know how to start.  We have installed successfully, 
+but what's the interface? what nachos provide? 
+what function call students can use? 
+-----------------------------------------------------------
+Starting is easy just tar -xvf the file and it will be installed.  Make
+changes to make sure the system is compatible.  
+Nachos uses command line interfaces.  The descriptions can be found in
+the README.
+
+
+1
+What's Mesa-Style in project 1?
+-------------------------------
+Mesa-style -- what nachos is using, its characteristics are
+
+a) signaller keeps lock, and
+b) waiter puts on ready queue
+
+Hoare style -- signaller gives up the lock, the CPU goes to the waiter.
+
+1
+Is the nachos assignments dependent on each other?
+--------------------------------------------------
+The only assignment that other assignments are dependent on is the threads
+assignment.  The other four assignments are pretty much unrelated since they
+implement different subsystems of nachos.  
+
+1
+Why does the fork function only passes one integer?
+---------------------------------------------------
+You can use the integer as a memory address to an array if necessary but
+nachos generally don't require arguments to pass when forking.
+
+1
+Does nachos work with gcc 2.6.0?
+--------------------------------
+We're getting ready to release a fix to make it work.
+
+1
+Which version of gcc does nachos work with now?
+-----------------------------------------------
+The last version I used was 2.5.7.
+
+1
+Do we have any other assignments besides the initial 5?
+-------------------------------------------------------
+No.  Other universities might have modified the projects but we don't have
+at this moment the modifications.
+
+
+1
+(ULTRIX) I get the following diagnostic apparantly out of
+coff2noff:
+
+ld -N -T 0 start.o halt.o -o halt.coff
+../bin/coff2noff halt.coff halt
+numsections 2
+Loading 2 sections:
+        ".text", filepos 0xa0, mempos 0x0, size 0x100
+        ".comment", filepos 0x200, mempos 0x0, size 0x24
+Unknown segment type: .comment
+*** Error code 1
+
+Stop.
+----------------------------------------------------------
+
+Most likely, the coff2noff is being overly restrictive -- that is,
+it checks a flag in the header of the coff file, and it probably
+will work fine on MIPSEL-LE COFF.  The right thing to do is try it
+and see!
+
+1
+Are there any places where I can get help for nachos?
+-----------------------------------------------------
+You can reach us through email at nachos@cs.berkeley.edu, through the
+newsgroup alt.os.nachos, the mailing lists, nachos-support and nachos-users.
+

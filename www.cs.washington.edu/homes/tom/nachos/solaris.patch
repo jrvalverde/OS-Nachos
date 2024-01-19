@@ -1,0 +1,148 @@
+1.) CHANGES TO NACHOS FOR COMPILATION ON SPARC/SOLARIS 2.3
+
+1.1) code/Makefile.dep: Added two definitions for new host (HOST_SVR4 for
+      all hosts of this class, HOST_SunOS5 for changes specific to
+      SunOS 5/Solaris)
+
+	$ diff code/Makefile.dep ORIG
+
+	11c11
+	< # HOST = -DHOST_MIPS
+	---
+	> HOST = -DHOST_MIPS
+	15,20d14
+	< 
+	< # SUN SPARC, Sun 5.x
+	< HOST = -DHOST_SPARC -DHOST_IS_BIG_ENDIAN -DHOST_SVR4 -DHOST_SunOS5
+	< CPP = /usr/ccs/lib/cpp
+	< CPP_AS_FLAGS = -D_ASM
+	< LDFLAGS = -lsocket -lnsl
+
+
+1.2) code/Makefile.common: Need to assemble switch.s with new flag
+
+	$ diff Makefile.common ORIG
+
+	128c128
+	<       $(CPP) $(CPP_AS_FLAGS) -P $(INCPATH) $(HOST) ../threads/switch.s > swtch.s
+	---
+	>       $(CPP) -P $(INCPATH) $(HOST) ../threads/switch.s > swtch.s
+
+
+1.3) code/bin/Makefile: Sparc is big endian -- do the changes mentioned
+      in the comment
+
+	$ diff code/bin/Makefile ORIG
+
+	17c17
+	< #CFLAGS=-I./ -I../threads
+	---
+	> CFLAGS=-I./ -I../threads
+	20,24c20
+	< #all: coff2noff disassemble 
+	< 
+	< CFLAGS= -I./ -I../threads -DHOST_IS_BIG_ENDIAN
+	< all: coff2noff
+	< 
+	---
+	> all: coff2noff disassemble 
+
+
+1.4) code/machine/sysdep.cc: Some changes needed to include appropriate
+      files and passing correct parameter types to system calls
+
+	$ diff sysdep.cc ORIG
+
+	44,46c44
+	< #ifdef        HOST_SVR4
+	< #include      <fcntl.h>
+	< #endif
+	---
+	> 
+	50c48
+	< #if   defined(HOST_SNAKE) || defined(HOST_SVR4)
+	---
+	> #ifdef HOST_SNAKE
+	85d82
+	< #ifndef       HOST_SVR4
+	87d83
+	< #endif
+	124c120
+	< #if   defined(HOST_i386) || defined(HOST_SVR4)
+	---
+	> #ifdef HOST_i386
+	375,380c371
+	< #ifdef        HOST_SVR4
+	<                   (sockaddr *) &uName, 
+	< #else
+	<                   (char *) &uName, 
+	< #endif        /* HOST_SVR4 */
+	<                   sizeof(uName));
+	---
+	>                         (char *) &uName, sizeof(uName));
+
+
+1.5) code/threads/switch.s: Set correct paths for includes and changed
+      appearance of .globl definitions
+
+	$ diff code/threads/switch.s ORIG
+
+	117,120d116
+	< #ifdef        HOST_SunOS5
+	< #include      <sys/trap.h>
+	< #include      <sys/asm_linkage.h>
+	< #else
+	123,124d118
+	< #endif        /* HOST_SUNOS5 */
+	< 
+	135,138d128
+	< #ifdef        HOST_SunOS5
+	< .globl        ThreadRoot
+	< ThreadRoot:
+	< #else
+	141d130
+	< #endif
+	168,171d156
+	< #ifdef        HOST_SunOS5
+	< .globl        SWITCH
+	< SWITCH:
+	< #else
+	174d158
+	< #endif
+
+That's all there was to do. Not that much, is it?
+
+
+2) A SMALL BUG AND SOME INCONSISTENCIES
+
+2.1) filesys/filesys.cc: line 132-135
+
+	The lines
+
+		delete freeMap; 
+		delete directory; 
+		delete mapHdr; 
+		delete dirHdr;
+
+	are included in a debug if-statement. They should be out of
+	there.
+
+
+2.2) filesys/Makefile: line 11
+
+	If doing the assignments in your proposed order, the DEFINES
+	should be 
+
+	  DEFINES = -DUSER_PROGRAM -DFILESYS_NEEDED -DFILESYS -DVM -DUSE_TLB
+
+	instead of
+
+	  DEFINES =-DTHREADS -DUSER_PROGRAM -DVM -DFILESYS_NEEDED -DFILESYS
+
+	(In any case -DTHREADS must not be there.)
+
+
+2.3) Assignment #4, exercise 4. mentiones a -DREALISM flag and a file
+      called test4.cc, both of which I couldn't find.  test4.cc should
+      probably be fstest.cc; I have no idea about the -DREALISM.
+

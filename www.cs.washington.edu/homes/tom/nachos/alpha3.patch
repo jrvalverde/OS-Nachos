@@ -1,0 +1,58 @@
+From roberto@psice.unibo.it Wed Jul 31 04:40:27 1996
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.35.123]) by orodruin.CS.Berkeley.EDU (8.7.Gamma.0/8.7.Gamma.0) with SMTP id EAA00336 for <tea@orodruin.CS.Berkeley.EDU>; Wed, 31 Jul 1996 04:40:26 -0700 (PDT)
+Received: from monet.psice.unibo.it (monet.psice.unibo.it [137.204.210.2]) by hofmann.CS.Berkeley.EDU (8.6.11/8.6.6.Beta11) with ESMTP id EAA12473 for <tea@CS.Berkeley.EDU>; Wed, 31 Jul 1996 04:40:20 -0700
+Received: from aula2.psice.unibo.it (aula2.psice.unibo.it [137.204.210.22]) by monet.psice.unibo.it (8.6.12/8.6.11) with SMTP id MAA05498 for <tea@CS.Berkeley.EDU>; Wed, 31 Jul 1996 12:42:14 +0100
+Message-Id: <199607311142.MAA05498@monet.psice.unibo.it>
+Comments: Authenticated sender is <roberto@psice.unibo.it>
+From: "Roberto Rossi" <roberto@psice.unibo.it>
+Organization: C.d.L. Psicologia - Cesena
+To: tea@CS.Berkeley.EDU
+Date: Wed, 31 Jul 1996 13:40:44 +0000
+MIME-Version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7BIT
+Subject: Nachos v3.4 on DEC Alpha/OSF and i386/Linux systems
+Priority: normal
+X-mailer: Pegasus Mail for Windows (v2.40)
+Status: RO
+
+Dear Prof. Anderson,
+Your Nachos web page contains a link to the DEC Alpha OSF/1 patch
+I made about two years ago (someone else's patch to work on alpha).
+Shichi Oikawa indipendentely made a DEC Alpha OSF/1 patch for
+Nachos v3.3 (?) (patch to work on alpha).
+In the meanwhile, I made a Dec Alpha patch to the latest Nachos
+release (v3.4). I successfully use it for courses on operating
+systems design and implementation at the Computer Science Institute
+of the University of Bologna, at Cesena, Italy.
+Nachos v3.4 runs on DEC Alpha platforms with OSF/1 v2 and v3
+operating systems and can be compiled with gcc v.2.7.2 and
+binutils v.2.7. The same development tools can be used as
+cross-compilation environment to produce MIPS executables that
+safely run as user processes on top of Nachos.
+With the DEC Alpha patch, I have enclosed a patch for the Linux
+system (kernel v.1.2.x and higher, gcc/cross-gcc 2.7.2 and
+binutils/cross-binutils 2.7). Assignments developed on Linux run
+successfully when ported to OSF/1 and viceversa.
+Both the patches are stable (I've had over 50 projects successfully
+completed) so I would be happy if they could be applied to a new
+official Nachos release.
+The Dec Alpha (and Linux) patches are contained in the attached
+file alpha34.gz. It is a context-diff file that can be applied to
+Nachos v3.4 by using 'patch'.
+The installation steps are the following:
+$ uncompress nachos-3.4.tar.Z
+$ tar xf nachos-3.4.tar 
+$ gunzip alpha34.gz
+$ patch < alpha34
+
+Best regards,
+
+---------------------------------------------------------
+Roberto Rossi               Email: roberto@csr.unibo.it
+Computer Science Institute         roberto@psice.unibo.it
+University of Bologna
+Via Sacchi, 3               Phone: +39-547-610000 
+47023 CESENA - ITALY        Fax  : +39-547-610100
+---------------------------------------------------------
+

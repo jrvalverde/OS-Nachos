@@ -1,0 +1,1311 @@
+From shui@slab.sfc.keio.ac.jp Sat May  6 05:48:36 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.34.35]) by orodruin.CS.Berkeley.EDU (8.6.10/8.7.0.Beta0) with ESMTP id FAA16296 for <tea@orodruin.CS.Berkeley.EDU>; Sat, 6 May 1995 05:48:33 -0700
+Received: from slab.sfc.keio.ac.jp (klein.slab.sfc.keio.ac.jp [133.27.68.16]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with ESMTP id FAA10145 for <nachos@cs.berkeley.edu>; Sat, 6 May 1995 05:48:29 -0700
+Received: from viper (viper.slab.sfc.keio.ac.jp [133.27.68.21]) by slab.sfc.keio.ac.jp (8.6.10+2.5Wb1/3.4Wbeta2-95033021) with SMTP
+	id VAA01911 for <nachos@cs.berkeley.edu>; Sat, 6 May 1995 21:48:22 +0900
+Received: from localhost by viper; (5.65/1.1.8.2/31Mar95-0848PM)
+	id AA29702; Sat, 6 May 1995 21:48:27 +0900
+Message-Id: <9505061248.AA29702@viper>
+To: nachos@cs.berkeley.edu
+Subject: Nachos on DEC Alpha
+Date: Sat, 06 May 1995 21:48:26 +0900
+From: Shuichi Oikawa <shui@slab.sfc.keio.ac.jp>
+Status: RO
+
+
+Dear Nachos developers,
+
+I ported the core parts of Nachos to DEC Alpha running OSF/1 3.0B.
+Since I haven't compiled GCC for cross compile environment yet, I
+haven't tested on it with user-level programs.  But, I'll do it soon.
+
+I used `size_t' instead of `int' for the type to cast `this' to an
+anonymous type.  Since Alpha employes a 64bit architecture, `int'
+doesn't work for such purpose.
+
+I'll attach the diff from the original nachos-3.3 source code.
+
+Shuichi Oikawa
+Faculty of Environmental Information
+Keio University
+shui@slab.sfc.keio.ac.jp
+
+
+diff -r -c code-dist/Makefile.dep code/Makefile.dep
+*** code-dist/Makefile.dep	Wed Mar 02 08:05:46 1994
+--- code/Makefile.dep	Thu Apr 13 14:03:19 1995
+***************
+*** 8,14 ****
+  # Also, you need to edit the Makefile in the bin subdirectory.
+  
+  # DEC MIPS, Ultrix
+! HOST = -DHOST_MIPS
+  
+  # SUN SPARC, Sun 4.xx 
+  # HOST = -DHOST_SPARC -DHOST_IS_BIG_ENDIAN
+--- 8,17 ----
+  # Also, you need to edit the Makefile in the bin subdirectory.
+  
+  # DEC MIPS, Ultrix
+! #HOST = -DHOST_MIPS
+! 
+! # DEC Alpha, OSF/1
+! HOST = -DHOST_ALPHA
+  
+  # SUN SPARC, Sun 4.xx 
+  # HOST = -DHOST_SPARC -DHOST_IS_BIG_ENDIAN
+diff -r -c code-dist/filesys/synchdisk.cc code/filesys/synchdisk.cc
+*** code-dist/filesys/synchdisk.cc	Sun Nov 21 17:05:10 1993
+--- code/filesys/synchdisk.cc	Mon Apr 17 21:28:19 1995
+***************
+*** 24,34 ****
+  //----------------------------------------------------------------------
+  
+  static void
+! DiskRequestDone (int arg)
+  {
+!     SynchDisk* disk = (SynchDisk *)arg;
+  
+!     disk->RequestDone();
+  }
+  
+  //----------------------------------------------------------------------
+--- 24,34 ----
+  //----------------------------------------------------------------------
+  
+  static void
+! DiskRequestDone (size_t arg)
+  {
+!     SynchDisk* sdisk = (SynchDisk *)arg;
+  
+!     sdisk->RequestDone();
+  }
+  
+  //----------------------------------------------------------------------
+***************
+*** 44,50 ****
+  {
+      semaphore = new Semaphore("synch disk", 0);
+      lock = new Lock("synch disk lock");
+!     disk = new Disk(name, DiskRequestDone, (int) this);
+  }
+  
+  //----------------------------------------------------------------------
+--- 44,50 ----
+  {
+      semaphore = new Semaphore("synch disk", 0);
+      lock = new Lock("synch disk lock");
+!     disk = new Disk(name, DiskRequestDone, (size_t) this);
+  }
+  
+  //----------------------------------------------------------------------
+diff -r -c code-dist/machine/console.cc code/machine/console.cc
+*** code-dist/machine/console.cc	Sun Nov 21 20:17:20 1993
+--- code/machine/console.cc	Mon Apr 17 21:27:14 1995
+***************
+*** 18,26 ****
+  #include "system.h"
+  
+  // Dummy functions because C++ is weird about pointers to member functions
+! static void ConsoleReadPoll(int c) 
+  { Console *console = (Console *)c; console->CheckCharAvail(); }
+! static void ConsoleWriteDone(int c)
+  { Console *console = (Console *)c; console->WriteDone(); }
+  
+  //----------------------------------------------------------------------
+--- 18,26 ----
+  #include "system.h"
+  
+  // Dummy functions because C++ is weird about pointers to member functions
+! static void ConsoleReadPoll(size_t c) 
+  { Console *console = (Console *)c; console->CheckCharAvail(); }
+! static void ConsoleWriteDone(size_t c)
+  { Console *console = (Console *)c; console->WriteDone(); }
+  
+  //----------------------------------------------------------------------
+***************
+*** 37,43 ****
+  //----------------------------------------------------------------------
+  
+  Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail, 
+! 		VoidFunctionPtr writeDone, int callArg)
+  {
+      if (readFile == NULL)
+  	readFileNo = 0;					// keyboard = stdin
+--- 37,43 ----
+  //----------------------------------------------------------------------
+  
+  Console::Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail, 
+! 		VoidFunctionPtr writeDone, size_t callArg)
+  {
+      if (readFile == NULL)
+  	readFileNo = 0;					// keyboard = stdin
+***************
+*** 56,62 ****
+      incoming = EOF;
+  
+      // start polling for incoming packets
+!     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, ConsoleReadInt);
+  }
+  
+  //----------------------------------------------------------------------
+--- 56,62 ----
+      incoming = EOF;
+  
+      // start polling for incoming packets
+!     interrupt->Schedule(ConsoleReadPoll, (size_t)this, ConsoleTime, ConsoleReadInt);
+  }
+  
+  //----------------------------------------------------------------------
+***************
+*** 89,95 ****
+      char c;
+  
+      // schedule the next time to poll for a packet
+!     interrupt->Schedule(ConsoleReadPoll, (int)this, ConsoleTime, 
+  			ConsoleReadInt);
+  
+      // do nothing if character is already buffered, or none to be read
+--- 89,95 ----
+      char c;
+  
+      // schedule the next time to poll for a packet
+!     interrupt->Schedule(ConsoleReadPoll, (size_t)this, ConsoleTime, 
+  			ConsoleReadInt);
+  
+      // do nothing if character is already buffered, or none to be read
+***************
+*** 145,150 ****
+      ASSERT(putBusy == FALSE);
+      WriteFile(writeFileNo, &ch, sizeof(char));
+      putBusy = TRUE;
+!     interrupt->Schedule(ConsoleWriteDone, (int)this, ConsoleTime,
+  					ConsoleWriteInt);
+  }
+--- 145,150 ----
+      ASSERT(putBusy == FALSE);
+      WriteFile(writeFileNo, &ch, sizeof(char));
+      putBusy = TRUE;
+!     interrupt->Schedule(ConsoleWriteDone, (size_t)this, ConsoleTime,
+  					ConsoleWriteInt);
+  }
+diff -r -c code-dist/machine/console.h code/machine/console.h
+*** code-dist/machine/console.h	Sun Nov 21 18:56:58 1993
+--- code/machine/console.h	Mon Apr 17 21:27:26 1995
+***************
+*** 38,44 ****
+  class Console {
+    public:
+      Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail, 
+! 	VoidFunctionPtr writeDone, int callArg);
+  				// initialize the hardware console device
+      ~Console();			// clean up console emulation
+  
+--- 38,44 ----
+  class Console {
+    public:
+      Console(char *readFile, char *writeFile, VoidFunctionPtr readAvail, 
+! 	VoidFunctionPtr writeDone, size_t callArg);
+  				// initialize the hardware console device
+      ~Console();			// clean up console emulation
+  
+***************
+*** 63,69 ****
+  					// the PutChar I/O completes
+      VoidFunctionPtr readHandler; 	// Interrupt handler to call when 
+  					// a character arrives from the keyboard
+!     int handlerArg;			// argument to be passed to the 
+  					// interrupt handlers
+      bool putBusy;    			// Is a PutChar operation in progress?
+  					// If so, you can't do another one!
+--- 63,69 ----
+  					// the PutChar I/O completes
+      VoidFunctionPtr readHandler; 	// Interrupt handler to call when 
+  					// a character arrives from the keyboard
+!     size_t handlerArg;			// argument to be passed to the 
+  					// interrupt handlers
+      bool putBusy;    			// Is a PutChar operation in progress?
+  					// If so, you can't do another one!
+diff -r -c code-dist/machine/disk.cc code/machine/disk.cc
+*** code-dist/machine/disk.cc	Sun Nov 21 21:50:28 1993
+--- code/machine/disk.cc	Mon Apr 17 21:30:47 1995
+***************
+*** 26,33 ****
+  #define DiskSize 	(MagicSize + (NumSectors * SectorSize))
+  
+  // dummy procedure because we can't take a pointer of a member function
+! static void DiskDone(int arg) { ((Disk *)arg)->HandleInterrupt(); }
+  
+  //----------------------------------------------------------------------
+  // Disk::Disk()
+  // 	Initialize a simulated disk.  Open the UNIX file (creating it
+--- 26,34 ----
+  #define DiskSize 	(MagicSize + (NumSectors * SectorSize))
+  
+  // dummy procedure because we can't take a pointer of a member function
+! static void DiskDone(size_t arg) { ((Disk *)arg)->HandleInterrupt(); }
+  
++ 
+  //----------------------------------------------------------------------
+  // Disk::Disk()
+  // 	Initialize a simulated disk.  Open the UNIX file (creating it
+***************
+*** 40,46 ****
+  //	"callArg" -- argument to pass the interrupt handler
+  //----------------------------------------------------------------------
+  
+! Disk::Disk(char* name, VoidFunctionPtr callWhenDone, int callArg)
+  {
+      int magicNum;
+      int tmp = 0;
+--- 41,47 ----
+  //	"callArg" -- argument to pass the interrupt handler
+  //----------------------------------------------------------------------
+  
+! Disk::Disk(char* name, VoidFunctionPtr callWhenDone, size_t callArg)
+  {
+      int magicNum;
+      int tmp = 0;
+***************
+*** 129,135 ****
+      active = TRUE;
+      UpdateLast(sectorNumber);
+      stats->numDiskReads++;
+!     interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+  }
+  
+  void
+--- 130,136 ----
+      active = TRUE;
+      UpdateLast(sectorNumber);
+      stats->numDiskReads++;
+!     interrupt->Schedule(DiskDone, (size_t) this, ticks, DiskInt);
+  }
+  
+  void
+***************
+*** 149,155 ****
+      active = TRUE;
+      UpdateLast(sectorNumber);
+      stats->numDiskWrites++;
+!     interrupt->Schedule(DiskDone, (int) this, ticks, DiskInt);
+  }
+  
+  //----------------------------------------------------------------------
+--- 150,156 ----
+      active = TRUE;
+      UpdateLast(sectorNumber);
+      stats->numDiskWrites++;
+!     interrupt->Schedule(DiskDone, (size_t) this, ticks, DiskInt);
+  }
+  
+  //----------------------------------------------------------------------
+diff -r -c code-dist/machine/disk.h code/machine/disk.h
+*** code-dist/machine/disk.h	Sun Nov 21 19:37:01 1993
+--- code/machine/disk.h	Mon Apr 17 21:28:57 1995
+***************
+*** 54,60 ****
+  
+  class Disk {
+    public:
+!     Disk(char* name, VoidFunctionPtr callWhenDone, int callArg);
+      					// Create a simulated disk.  
+  					// Invoke (*callWhenDone)(callArg) 
+  					// every time a request completes.
+--- 54,60 ----
+  
+  class Disk {
+    public:
+!     Disk(char* name, VoidFunctionPtr callWhenDone, size_t callArg);
+      					// Create a simulated disk.  
+  					// Invoke (*callWhenDone)(callArg) 
+  					// every time a request completes.
+***************
+*** 79,85 ****
+      int fileno;				// UNIX file number for simulated disk 
+      VoidFunctionPtr handler;		// Interrupt handler, to be invoked 
+  					// when any disk request finishes
+!     int handlerArg;			// Argument to interrupt handler 
+      bool active;     			// Is a disk operation in progress?
+      int lastSector;			// The previous disk request 
+      int bufferInit;			// When the track buffer started 
+--- 79,85 ----
+      int fileno;				// UNIX file number for simulated disk 
+      VoidFunctionPtr handler;		// Interrupt handler, to be invoked 
+  					// when any disk request finishes
+!     size_t handlerArg;			// Argument to interrupt handler 
+      bool active;     			// Is a disk operation in progress?
+      int lastSector;			// The previous disk request 
+      int bufferInit;			// When the track buffer started 
+diff -r -c code-dist/machine/interrupt.cc code/machine/interrupt.cc
+*** code-dist/machine/interrupt.cc	Wed Mar 02 08:25:58 1994
+--- code/machine/interrupt.cc	Mon Apr 17 21:20:14 1995
+***************
+*** 41,47 ****
+  //	"kind" is the hardware device that generated the interrupt
+  //----------------------------------------------------------------------
+  
+! PendingInterrupt::PendingInterrupt(VoidFunctionPtr func, int param, int time, 
+  				IntType kind)
+  {
+      handler = func;
+--- 41,47 ----
+  //	"kind" is the hardware device that generated the interrupt
+  //----------------------------------------------------------------------
+  
+! PendingInterrupt::PendingInterrupt(VoidFunctionPtr func, size_t param, int time, 
+  				IntType kind)
+  {
+      handler = func;
+***************
+*** 262,268 ****
+  //	"type" is the hardware device that generated the interrupt
+  //----------------------------------------------------------------------
+  void
+! Interrupt::Schedule(VoidFunctionPtr handler, int arg, int fromNow, IntType type)
+  {
+      int when = stats->totalTicks + fromNow;
+      PendingInterrupt *toOccur = new PendingInterrupt(handler, arg, when, type);
+--- 262,268 ----
+  //	"type" is the hardware device that generated the interrupt
+  //----------------------------------------------------------------------
+  void
+! Interrupt::Schedule(VoidFunctionPtr handler, size_t arg, int fromNow, IntType type)
+  {
+      int when = stats->totalTicks + fromNow;
+      PendingInterrupt *toOccur = new PendingInterrupt(handler, arg, when, type);
+***************
+*** 342,348 ****
+  //----------------------------------------------------------------------
+  
+  static void
+! PrintPending(int arg)
+  {
+      PendingInterrupt *pend = (PendingInterrupt *)arg;
+  
+--- 342,348 ----
+  //----------------------------------------------------------------------
+  
+  static void
+! PrintPending(size_t arg)
+  {
+      PendingInterrupt *pend = (PendingInterrupt *)arg;
+  
+diff -r -c code-dist/machine/interrupt.h code/machine/interrupt.h
+*** code-dist/machine/interrupt.h	Sun Nov 21 17:44:08 1993
+--- code/machine/interrupt.h	Mon Apr 17 21:18:32 1995
+***************
+*** 58,72 ****
+  
+  class PendingInterrupt {
+    public:
+!     PendingInterrupt(VoidFunctionPtr func, int param, int time, IntType kind);
+  				// initialize an interrupt that will
+  				// occur in the future
+  
+      VoidFunctionPtr handler;    // The function (in the hardware device
+  				// emulator) to call when the interrupt occurs
+!     int arg;                    // The argument to the function.
+!     int when;			// When the interrupt is supposed to fire
+!     IntType type;		// for debugging
+  };
+  
+  // The following class defines the data structures for the simulation
+--- 58,72 ----
+  
+  class PendingInterrupt {
+    public:
+!     PendingInterrupt(VoidFunctionPtr func, size_t param, int time, IntType kind);
+  				// initialize an interrupt that will
+  				// occur in the future
+  
+      VoidFunctionPtr handler;    // The function (in the hardware device
+  				// emulator) to call when the interrupt occurs
+!     size_t	arg;		// The argument to the function.
+!     int		when;		// When the interrupt is supposed to fire
+!     IntType	type;		// for debugging
+  };
+  
+  // The following class defines the data structures for the simulation
+***************
+*** 105,115 ****
+      // DO NOT call these directly.  I should make them "private",
+      // but they need to be public since they are called by the
+      // hardware device simulators.
+- 
+      void Schedule(VoidFunctionPtr handler,// Schedule an interrupt to occur
+! 	int arg, int when, IntType type);// at time ``when''.  This is called
+      					// by the hardware device simulators.
+!     
+      void OneTick();       		// Advance simulated time
+  
+    private:
+--- 105,114 ----
+      // DO NOT call these directly.  I should make them "private",
+      // but they need to be public since they are called by the
+      // hardware device simulators.
+      void Schedule(VoidFunctionPtr handler,// Schedule an interrupt to occur
+! 	size_t arg, int when, IntType type);// at time ``when''.  This is called
+      					// by the hardware device simulators.
+! 
+      void OneTick();       		// Advance simulated time
+  
+    private:
+diff -r -c code-dist/machine/network.cc code/machine/network.cc
+*** code-dist/machine/network.cc	Thu Mar 03 02:01:32 1994
+--- code/machine/network.cc	Mon Apr 17 21:39:34 1995
+***************
+*** 12,20 ****
+  #include "system.h"
+  
+  // Dummy functions because C++ can't call member functions indirectly 
+! static void NetworkReadPoll(int arg)
+  { Network *net = (Network *)arg; net->CheckPktAvail(); }
+! static void NetworkSendDone(int arg)
+  { Network *net = (Network *)arg; net->SendDone(); }
+  
+  // Initialize the network emulation
+--- 12,20 ----
+  #include "system.h"
+  
+  // Dummy functions because C++ can't call member functions indirectly 
+! static void NetworkReadPoll(size_t arg)
+  { Network *net = (Network *)arg; net->CheckPktAvail(); }
+! static void NetworkSendDone(size_t arg)
+  { Network *net = (Network *)arg; net->SendDone(); }
+  
+  // Initialize the network emulation
+***************
+*** 22,28 ****
+  //   reliability says whether we drop packets to emulate unreliable links
+  //   readAvail, writeDone, callArg -- analogous to console
+  Network::Network(NetworkAddress addr, double reliability,
+! 	VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg)
+  {
+      ident = addr;
+      if (reliability < 0) chanceToWork = 0;
+--- 22,28 ----
+  //   reliability says whether we drop packets to emulate unreliable links
+  //   readAvail, writeDone, callArg -- analogous to console
+  Network::Network(NetworkAddress addr, double reliability,
+! 	VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, size_t callArg)
+  {
+      ident = addr;
+      if (reliability < 0) chanceToWork = 0;
+***************
+*** 42,48 ****
+  						 // in the current directory.
+  
+      // start polling for incoming packets
+!     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+  }
+  
+  Network::~Network()
+--- 42,48 ----
+  						 // in the current directory.
+  
+      // start polling for incoming packets
+!     interrupt->Schedule(NetworkReadPoll, (size_t)this, NetworkTime, NetworkRecvInt);
+  }
+  
+  Network::~Network()
+***************
+*** 58,64 ****
+  Network::CheckPktAvail()
+  {
+      // schedule the next time to poll for a packet
+!     interrupt->Schedule(NetworkReadPoll, (int)this, NetworkTime, NetworkRecvInt);
+  
+      if (inHdr.length != 0) 	// do nothing if packet is already buffered
+  	return;		
+--- 58,64 ----
+  Network::CheckPktAvail()
+  {
+      // schedule the next time to poll for a packet
+!     interrupt->Schedule(NetworkReadPoll, (size_t)this, NetworkTime, NetworkRecvInt);
+  
+      if (inHdr.length != 0) 	// do nothing if packet is already buffered
+  	return;		
+***************
+*** 108,114 ****
+  		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
+      DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
+  
+!     interrupt->Schedule(NetworkSendDone, (int)this, NetworkTime, NetworkSendInt);
+  
+      if (Random() % 100 >= chanceToWork * 100) { // emulate a lost packet
+  	DEBUG('n', "oops, lost it!\n");
+--- 108,114 ----
+  		&& (hdr.length <= MaxPacketSize) && (hdr.from == ident));
+      DEBUG('n', "Sending to addr %d, %d bytes... ", hdr.to, hdr.length);
+  
+!     interrupt->Schedule(NetworkSendDone, (size_t)this, NetworkTime, NetworkSendInt);
+  
+      if (Random() % 100 >= chanceToWork * 100) { // emulate a lost packet
+  	DEBUG('n', "oops, lost it!\n");
+diff -r -c code-dist/machine/network.h code/machine/network.h
+*** code-dist/machine/network.h	Thu Nov 18 02:12:05 1993
+--- code/machine/network.h	Mon Apr 17 21:08:11 1995
+***************
+*** 55,61 ****
+  class Network {
+    public:
+      Network(NetworkAddress addr, double reliability,
+!   	  VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, int callArg);
+  				// Allocate and initialize network driver
+      ~Network();			// De-allocate the network driver data
+      
+--- 55,61 ----
+  class Network {
+    public:
+      Network(NetworkAddress addr, double reliability,
+!   	  VoidFunctionPtr readAvail, VoidFunctionPtr writeDone, size_t callArg);
+  				// Allocate and initialize network driver
+      ~Network();			// De-allocate the network driver data
+      
+diff -r -c code-dist/machine/sysdep.cc code/machine/sysdep.cc
+*** code-dist/machine/sysdep.cc	Mon Sep 26 13:04:05 1994
+--- code/machine/sysdep.cc	Mon Apr 17 21:22:56 1995
+***************
+*** 45,51 ****
+  
+  // UNIX routines called by procedures in this file 
+  
+! #ifdef HOST_SNAKE
+  // int creat(char *name, unsigned short mode);
+  // int open(const char *name, int flags, ...);
+  #else
+--- 45,51 ----
+  
+  // UNIX routines called by procedures in this file 
+  
+! #if defined(HOST_SNAKE) | defined(HOST_ALPHA)
+  // int creat(char *name, unsigned short mode);
+  // int open(const char *name, int flags, ...);
+  #else
+***************
+*** 80,85 ****
+--- 80,88 ----
+  unsigned sleep(unsigned);
+  void abort();
+  void exit();
++ #if defined(HOST_ALPHA)
++ // 
++ #else
+  int mprotect(char *addr, int len, int prot);
+  
+  int socket(int, int, int);
+***************
+*** 86,91 ****
+--- 89,95 ----
+  int bind (int, const void*, int);
+  int recvfrom (int, void*, int, int, void*, int *);
+  int sendto (int, const void*, int, int, void*, int);
++ #endif
+  }
+  
+  #include "interrupt.h"
+***************
+*** 122,128 ****
+          pollTime.tv_usec = 0;                 	// no delay
+  
+  // poll file or socket
+! #ifdef HOST_i386
+      retVal = select(32, (fd_set*)&rfd, (fd_set*)&wfd, (fd_set*)&xfd, &pollTime);
+  #else
+      retVal = select(32, &rfd, &wfd, &xfd, &pollTime);
+--- 126,132 ----
+          pollTime.tv_usec = 0;                 	// no delay
+  
+  // poll file or socket
+! #if defined(HOST_i386) | defined(HOST_ALPHA)
+      retVal = select(32, (fd_set*)&rfd, (fd_set*)&wfd, (fd_set*)&xfd, &pollTime);
+  #else
+      retVal = select(32, &rfd, &wfd, &xfd, &pollTime);
+***************
+*** 372,379 ****
+--- 376,388 ----
+      int retVal;
+  
+      InitSocketName(&uName, toName);
++ #if defined(HOST_ALPHA)
+      retVal = sendto(sockID, buffer, packetSize, 0,
++ 		    (struct sockaddr *) &uName, sizeof(uName));
++ #else
++     retVal = sendto(sockID, buffer, packetSize, 0,
+  			  (char *) &uName, sizeof(uName));
++ #endif
+      ASSERT(retVal == packetSize);
+  }
+  
+***************
+*** 387,393 ****
+--- 396,406 ----
+  void 
+  CallOnUserAbort(VoidNoArgFunctionPtr func)
+  {
++ #ifdef HOST_ALPHA
++     (void)signal(SIGINT, (void (*)(int))func);
++ #else
+      (void)signal(SIGINT, (VoidFunctionPtr) func);
++ #endif
+  }
+  
+  //----------------------------------------------------------------------
+diff -r -c code-dist/machine/timer.cc code/machine/timer.cc
+*** code-dist/machine/timer.cc	Mon Oct 04 07:08:35 1993
+--- code/machine/timer.cc	Mon Apr 17 21:24:12 1995
+***************
+*** 24,30 ****
+  #include "system.h"
+  
+  // dummy function because C++ does not allow pointers to member functions
+! static void TimerHandler(int arg)
+  { Timer *p = (Timer *)arg; p->TimerExpired(); }
+  
+  //----------------------------------------------------------------------
+--- 24,30 ----
+  #include "system.h"
+  
+  // dummy function because C++ does not allow pointers to member functions
+! static void TimerHandler(size_t arg)
+  { Timer *p = (Timer *)arg; p->TimerExpired(); }
+  
+  //----------------------------------------------------------------------
+***************
+*** 41,47 ****
+  //		at random, instead of fixed, intervals.
+  //----------------------------------------------------------------------
+  
+! Timer::Timer(VoidFunctionPtr timerHandler, int callArg, bool doRandom)
+  {
+      randomize = doRandom;
+      handler = timerHandler;
+--- 41,47 ----
+  //		at random, instead of fixed, intervals.
+  //----------------------------------------------------------------------
+  
+! Timer::Timer(VoidFunctionPtr timerHandler, size_t callArg, bool doRandom)
+  {
+      randomize = doRandom;
+      handler = timerHandler;
+***************
+*** 48,54 ****
+      arg = callArg; 
+  
+      // schedule the first interrupt from the timer device
+!     interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+  		TimerInt); 
+  }
+  
+--- 48,54 ----
+      arg = callArg; 
+  
+      // schedule the first interrupt from the timer device
+!     interrupt->Schedule(TimerHandler, (size_t) this, TimeOfNextInterrupt(), 
+  		TimerInt); 
+  }
+  
+***************
+*** 62,68 ****
+  Timer::TimerExpired() 
+  {
+      // schedule the next timer device interrupt
+!     interrupt->Schedule(TimerHandler, (int) this, TimeOfNextInterrupt(), 
+  		TimerInt);
+  
+      // invoke the Nachos interrupt handler for this device
+--- 62,68 ----
+  Timer::TimerExpired() 
+  {
+      // schedule the next timer device interrupt
+!     interrupt->Schedule(TimerHandler, (size_t) this, TimeOfNextInterrupt(), 
+  		TimerInt);
+  
+      // invoke the Nachos interrupt handler for this device
+diff -r -c code-dist/machine/timer.h code/machine/timer.h
+*** code-dist/machine/timer.h	Sun Nov 21 18:07:22 1993
+--- code/machine/timer.h	Mon Apr 17 21:08:24 1995
+***************
+*** 26,32 ****
+  // The following class defines a hardware timer. 
+  class Timer {
+    public:
+!     Timer(VoidFunctionPtr timerHandler, int callArg, bool doRandom);
+  				// Initialize the timer, to call the interrupt
+  				// handler "timerHandler" every time slice.
+      ~Timer() {}
+--- 26,32 ----
+  // The following class defines a hardware timer. 
+  class Timer {
+    public:
+!     Timer(VoidFunctionPtr timerHandler, size_t callArg, bool doRandom);
+  				// Initialize the timer, to call the interrupt
+  				// handler "timerHandler" every time slice.
+      ~Timer() {}
+diff -r -c code-dist/network/post.cc code/network/post.cc
+*** code-dist/network/post.cc	Tue Feb 01 11:06:19 1994
+--- code/network/post.cc	Mon Apr 17 21:38:42 1995
+***************
+*** 145,155 ****
+  //	"arg" -- pointer to the Post Office managing the Network
+  //----------------------------------------------------------------------
+  
+! static void PostalHelper(int arg)
+  { PostOffice* po = (PostOffice *) arg; po->PostalDelivery(); }
+! static void ReadAvail(int arg)
+  { PostOffice* po = (PostOffice *) arg; po->IncomingPacket(); }
+! static void WriteDone(int arg)
+  { PostOffice* po = (PostOffice *) arg; po->PacketSent(); }
+  
+  //----------------------------------------------------------------------
+--- 145,155 ----
+  //	"arg" -- pointer to the Post Office managing the Network
+  //----------------------------------------------------------------------
+  
+! static void PostalHelper(size_t arg)
+  { PostOffice* po = (PostOffice *) arg; po->PostalDelivery(); }
+! static void ReadAvail(size_t arg)
+  { PostOffice* po = (PostOffice *) arg; po->IncomingPacket(); }
+! static void WriteDone(size_t arg)
+  { PostOffice* po = (PostOffice *) arg; po->PacketSent(); }
+  
+  //----------------------------------------------------------------------
+***************
+*** 184,190 ****
+      boxes = new MailBox[nBoxes];
+  
+  // Third, initialize the network; tell it which interrupt handlers to call
+!     network = new Network(addr, reliability, ReadAvail, WriteDone, (int) this);
+  
+  
+  // Finally, create a thread whose sole job is to wait for incoming messages,
+--- 184,190 ----
+      boxes = new MailBox[nBoxes];
+  
+  // Third, initialize the network; tell it which interrupt handlers to call
+!     network = new Network(addr, reliability, ReadAvail, WriteDone, (size_t) this);
+  
+  
+  // Finally, create a thread whose sole job is to wait for incoming messages,
+***************
+*** 191,197 ****
+  //   and put them in the right mailbox. 
+      Thread *t = new Thread("postal worker");
+  
+!     t->Fork(PostalHelper, (int) this);
+  }
+  
+  //----------------------------------------------------------------------
+--- 191,197 ----
+  //   and put them in the right mailbox. 
+      Thread *t = new Thread("postal worker");
+  
+!     t->Fork(PostalHelper, (size_t) this);
+  }
+  
+  //----------------------------------------------------------------------
+***************
+*** 274,280 ****
+      pktHdr.length = mailHdr.length + sizeof(MailHeader);
+  
+      // concatenate MailHeader and data
+!     bcopy(&mailHdr, buffer, sizeof(MailHeader));
+      bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
+  
+      sendLock->Acquire();   		// only one message can be sent
+--- 274,280 ----
+      pktHdr.length = mailHdr.length + sizeof(MailHeader);
+  
+      // concatenate MailHeader and data
+!     bcopy((char*)&mailHdr, buffer, sizeof(MailHeader));
+      bcopy(data, buffer + sizeof(MailHeader), mailHdr.length);
+  
+      sendLock->Acquire();   		// only one message can be sent
+diff -r -c code-dist/threads/list.cc code/threads/list.cc
+*** code-dist/threads/list.cc	Mon Oct 04 07:08:46 1993
+--- code/threads/list.cc	Mon Apr 17 21:10:56 1995
+***************
+*** 142,148 ****
+  {
+      for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next) {
+         DEBUG('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+!        (*func)((int)ptr->item);
+      }
+  }
+  
+--- 142,148 ----
+  {
+      for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next) {
+         DEBUG('l', "In mapcar, about to invoke %x(%x)\n", func, ptr->item);
+!        (*func)((size_t)ptr->item);
+      }
+  }
+  
+diff -r -c code-dist/threads/switch.h code/threads/switch.h
+*** code-dist/threads/switch.h	Thu Nov 18 11:41:10 1993
+--- code/threads/switch.h	Mon Apr 17 17:20:05 1995
+***************
+*** 61,66 ****
+--- 61,108 ----
+  
+  #endif 	// HOST_MIPS
+  
++ /* 
++  * Porting to Alpha was done by Shuichi Oikawa (shui@sfc.keio.ac.jp).
++  */
++ #ifdef HOST_ALPHA
++ /* Registers that must be saved during a context switch. 
++  * These are the offsets from the beginning of the Thread object, 
++  * in bytes, used in switch.s
++  */
++ #define	SP	(0*8)
++ #define S0	(1*8)
++ #define S1	(2*8)
++ #define S2	(3*8)
++ #define S3	(4*8)
++ #define S4	(5*8)
++ #define S5	(6*8)
++ #define S6	(7*8)		/* used as FP (Frame Pointer) */
++ #define GP	(8*8)
++ #define PC	(9*8)
++ 
++ /* To fork a thread, we set up its saved register state, so that
++  * when we switch to the thread, it will start running in ThreadRoot.
++  *
++  * The following are the initial registers we need to set up to
++  * pass values into ThreadRoot (for instance, containing the procedure
++  * for the thread to run).  The first set is the registers as used
++  * by ThreadRoot; the second set is the locations for these initial
++  * values in the Thread object -- used in Thread::StackAllocate().
++  */
++ #define InitialPC	s0
++ #define InitialArg	s1
++ #define WhenDonePC	s2
++ #define StartupPC	s3
++ 
++ #define PCState		(PC/8-1)
++ #define FPState		(S6/8-1)
++ #define InitialPCState	(S0/8-1)
++ #define InitialArgState	(S1/8-1)
++ #define WhenDonePCState	(S2/8-1)
++ #define StartupPCState	(S3/8-1)
++ 
++ #endif // HOST_ALPHA
++ 
+  #ifdef HOST_SPARC
+  
+  /* Registers that must be saved during a context switch.  See comment above. */ 
+diff -r -c code-dist/threads/switch.s code/threads/switch.s
+*** code-dist/threads/switch.s	Wed Jan 12 07:48:44 1994
+--- code/threads/switch.s	Mon Apr 17 17:19:17 1995
+***************
+*** 108,113 ****
+--- 108,178 ----
+  	.end SWITCH
+  #endif HOST_MIPS
+  
++ /* 
++  * Porting to Alpha was done by Shuichi Oikawa (shui@sfc.keio.ac.jp).
++  */
++ #ifdef HOST_ALPHA
++ #include "alpha-asm.h"
++ 
++ 	.set	noreorder	# unless overridden
++ 	.align	3
++ 	.text
++ 	
++ LEAF(ThreadRoot,0)
++ 	ldgp	gp,0(pv)
++ 
++ 	mov	zero,s6		# Clearing the frame pointer here
++ 				# makes gdb backtraces of thread stacks 
++ 				# end here (I hope!)
++ 	mov	StartupPC,pv
++ 	jsr	ra,(pv)		# call startup procedure
++ 	ldgp	gp,0(ra)
++ 
++ 	mov	InitialArg,a0
++ 	mov	InitialPC,pv
++ 	jsr	ra,(pv)		# call main procedure
++ 	ldgp	gp,0(ra)
++ 
++ 	mov	WhenDonePC,pv
++ 	jsr 	ra,(pv)		# when we're done, call clean up procedure
++ 	ldgp	gp,0(ra)
++ 
++ 	END(ThreadRoot)		# NEVER REACHED
++ 	
++ /* a0 -- pointer to old Thread *
++  * a1 -- pointer to new Thread */
++ LEAF(SWITCH,2)
++ 	ldgp	gp,0(pv)
++ 	
++ 	stq	ra, PC(a0)		# save return address
++ 	stq	gp, GP(a0)
++ 	stq	sp, SP(a0)		# save new stack pointer
++ 	stq	s0, S0(a0)		# save all the callee-save registers
++ 	stq	s1, S1(a0)
++ 	stq	s2, S2(a0)
++ 	stq	s3, S3(a0)
++ 	stq	s4, S4(a0)
++ 	stq	s5, S5(a0)
++ 	stq	s6, S6(a0)		# save frame pointer
++ 	
++ 	ldq	ra, PC(a1)		# load the return address	
++ 	ldq	gp, GP(a1)
++ 	ldq	sp, SP(a1)		# load the new stack pointer
++ 	ldq	s0, S0(a1)		# load the callee-save registers
++ 	ldq	s1, S1(a1)
++ 	ldq	s2, S2(a1)
++ 	ldq	s3, S3(a1)
++ 	ldq	s4, S4(a1)
++ 	ldq	s5, S5(a1)
++ 	ldq	s6, S6(a1)
++ 
++ 	mov	ra,pv
++ 	ret	zero,(ra)
++ 
++ 	END(SWITCH)
++ 	
++ #endif // HOST_ALPHA
++ 
+  #ifdef HOST_SPARC
+  
+  /* NOTE!  These files appear not to exist on Solaris --
+diff -r -c code-dist/threads/system.cc code/threads/system.cc
+*** code-dist/threads/system.cc	Sat Nov 20 17:46:56 1993
+--- code/threads/system.cc	Mon Apr 17 21:11:23 1995
+***************
+*** 58,64 ****
+  //		whether it needs it or not.
+  //----------------------------------------------------------------------
+  static void
+! TimerInterruptHandler(int dummy)
+  {
+      if (interrupt->getStatus() != IdleMode)
+  	interrupt->YieldOnReturn();
+--- 58,64 ----
+  //		whether it needs it or not.
+  //----------------------------------------------------------------------
+  static void
+! TimerInterruptHandler(size_t dummy)
+  {
+      if (interrupt->getStatus() != IdleMode)
+  	interrupt->YieldOnReturn();
+***************
+*** 134,140 ****
+      interrupt = new Interrupt;			// start up interrupt handling
+      scheduler = new Scheduler();		// initialize the ready queue
+      if (randomYield)				// start the timer (if needed)
+! 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+  
+      threadToBeDestroyed = NULL;
+  
+--- 134,140 ----
+      interrupt = new Interrupt;			// start up interrupt handling
+      scheduler = new Scheduler();		// initialize the ready queue
+      if (randomYield)				// start the timer (if needed)
+! 	timer = new Timer(TimerInterruptHandler, (size_t)0, randomYield);
+  
+      threadToBeDestroyed = NULL;
+  
+Only in code/threads: system.cc.~1~
+Only in code/threads: system.o
+diff -r -c code-dist/threads/thread.cc code/threads/thread.cc
+*** code-dist/threads/thread.cc	Wed Jan 12 08:49:50 1994
+--- code/threads/thread.cc	Mon Apr 17 21:11:59 1995
+***************
+*** 85,91 ****
+  //----------------------------------------------------------------------
+  
+  void 
+! Thread::Fork(VoidFunctionPtr func, int arg)
+  {
+      DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
+  	  name, (int) func, arg);
+--- 85,91 ----
+  //----------------------------------------------------------------------
+  
+  void 
+! Thread::Fork(VoidFunctionPtr func, size_t arg)
+  {
+      DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
+  	  name, (int) func, arg);
+***************
+*** 250,256 ****
+  //----------------------------------------------------------------------
+  
+  void
+! Thread::StackAllocate (VoidFunctionPtr func, int arg)
+  {
+      stack = (int *) AllocBoundedArray(StackSize * sizeof(int));
+  
+--- 250,256 ----
+  //----------------------------------------------------------------------
+  
+  void
+! Thread::StackAllocate (VoidFunctionPtr func, size_t arg)
+  {
+      stack = (int *) AllocBoundedArray(StackSize * sizeof(int));
+  
+***************
+*** 263,270 ****
+  #ifdef HOST_SPARC
+      // SPARC stack must contains at least 1 activation record to start with.
+      stackTop = stack + StackSize - 96;
+! #else  // HOST_MIPS  || HOST_i386
+      stackTop = stack + StackSize - 4;	// -4 to be on the safe side!
+  #ifdef HOST_i386
+      // the 80386 passes the return address on the stack.  In order for
+      // SWITCH() to go to ThreadRoot when we switch to this thread, the
+--- 263,274 ----
+  #ifdef HOST_SPARC
+      // SPARC stack must contains at least 1 activation record to start with.
+      stackTop = stack + StackSize - 96;
+! #else  // HOST_MIPS  || HOST_i386 || HOST_ALPHA
+! #if defined(HOST_ALPHA)
+!     stackTop = stack + StackSize - 8;	// -8 to be on the safe side!
+! #else
+      stackTop = stack + StackSize - 4;	// -4 to be on the safe side!
++ #endif
+  #ifdef HOST_i386
+      // the 80386 passes the return address on the stack.  In order for
+      // SWITCH() to go to ThreadRoot when we switch to this thread, the
+***************
+*** 275,286 ****
+  #endif  // HOST_SPARC
+      *stack = STACK_FENCEPOST;
+  #endif  // HOST_SNAKE
+!     
+      machineState[PCState] = (int) ThreadRoot;
+      machineState[StartupPCState] = (int) InterruptEnable;
+      machineState[InitialPCState] = (int) func;
+      machineState[InitialArgState] = arg;
+      machineState[WhenDonePCState] = (int) ThreadFinish;
+  }
+  
+  #ifdef USER_PROGRAM
+--- 279,298 ----
+  #endif  // HOST_SPARC
+      *stack = STACK_FENCEPOST;
+  #endif  // HOST_SNAKE
+! 
+! #if defined(HOST_ALPHA)
+!     machineState[PCState] = (u_long) ThreadRoot;
+!     machineState[StartupPCState] = (u_long) InterruptEnable;
+!     machineState[InitialPCState] = (u_long) func;
+!     machineState[InitialArgState] = (u_long) arg;
+!     machineState[WhenDonePCState] = (u_long) ThreadFinish;
+! #else    
+      machineState[PCState] = (int) ThreadRoot;
+      machineState[StartupPCState] = (int) InterruptEnable;
+      machineState[InitialPCState] = (int) func;
+      machineState[InitialArgState] = arg;
+      machineState[WhenDonePCState] = (int) ThreadFinish;
++ #endif
+  }
+  
+  #ifdef USER_PROGRAM
+diff -r -c code-dist/threads/thread.h code/threads/thread.h
+*** code-dist/threads/thread.h	Fri Nov 19 16:18:38 1993
+--- code/threads/thread.h	Mon Apr 17 21:13:10 1995
+***************
+*** 47,54 ****
+  
+  // CPU register state to be saved on context switch.  
+  // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
+  // For simplicity, this is just the max over all architectures.
+! #define MachineStateSize 18 
+  
+  
+  // Size of the thread's private execution stack.
+--- 47,55 ----
+  
+  // CPU register state to be saved on context switch.  
+  // The SPARC and MIPS only need 10 registers, but the Snake needs 18.
++ // The Alpha needs to save 10 64bit registers. (shui)
+  // For simplicity, this is just the max over all architectures.
+! #define MachineStateSize 20
+  
+  
+  // Size of the thread's private execution stack.
+***************
+*** 78,84 ****
+--- 79,89 ----
+      // NOTE: DO NOT CHANGE the order of these first two members.
+      // THEY MUST be in this position for SWITCH to work.
+      int* stackTop;			 // the current stack pointer
++ #if defined(HOST_ALPHA)
++     u_long machineState[MachineStateSize];  // all registers except for stackTop
++ #else
+      int machineState[MachineStateSize];  // all registers except for stackTop
++ #endif
+  
+    public:
+      Thread(char* debugName);		// initialize a Thread 
+***************
+*** 89,95 ****
+  
+      // basic thread operations
+  
+!     void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
+      void Yield();  				// Relinquish the CPU if any 
+  						// other thread is runnable
+      void Sleep();  				// Put the thread to sleep and 
+--- 94,100 ----
+  
+      // basic thread operations
+  
+!     void Fork(VoidFunctionPtr func, size_t arg); 	// Make thread run (*func)(arg)
+      void Yield();  				// Relinquish the CPU if any 
+  						// other thread is runnable
+      void Sleep();  				// Put the thread to sleep and 
+***************
+*** 111,117 ****
+      ThreadStatus status;		// ready, running or blocked
+      char* name;
+  
+!     void StackAllocate(VoidFunctionPtr func, int arg);
+      					// Allocate a stack for thread.
+  					// Used internally by Fork()
+  
+--- 116,122 ----
+      ThreadStatus status;		// ready, running or blocked
+      char* name;
+  
+!     void StackAllocate(VoidFunctionPtr func, size_t arg);
+      					// Allocate a stack for thread.
+  					// Used internally by Fork()
+  
+Only in code/threads: thread.o
+diff -r -c code-dist/threads/threadtest.cc code/threads/threadtest.cc
+*** code-dist/threads/threadtest.cc	Fri Jan 21 03:29:54 1994
+--- code/threads/threadtest.cc	Mon Apr 17 21:17:24 1995
+***************
+*** 22,28 ****
+  //----------------------------------------------------------------------
+  
+  void
+! SimpleThread(int which)
+  {
+      int num;
+      
+--- 22,28 ----
+  //----------------------------------------------------------------------
+  
+  void
+! SimpleThread(size_t which)
+  {
+      int num;
+      
+***************
+*** 45,51 ****
+  
+      Thread *t = new Thread("forked thread");
+  
+!     t->Fork(SimpleThread, 1);
+      SimpleThread(0);
+  }
+  
+--- 45,51 ----
+  
+      Thread *t = new Thread("forked thread");
+  
+!     t->Fork(SimpleThread, (size_t)1);
+      SimpleThread(0);
+  }
+  
+Only in code/threads: threadtest.cc.~1~
+Only in code/threads: threadtest.o
+Only in code/threads: timer.o
+diff -r -c code-dist/threads/utility.cc code/threads/utility.cc
+*** code-dist/threads/utility.cc	Thu Mar 03 03:45:08 1994
+--- code/threads/utility.cc	Thu Apr 13 14:51:17 1995
+***************
+*** 11,24 ****
+  
+  // this seems to be dependent on how the compiler is configured.
+  // if you have problems with va_start, try both of these alternatives
+! #ifdef HOST_SNAKE
+  #include <stdarg.h>
+  #else
+- #ifdef HOST_SPARC
+- #include <stdarg.h>
+- #else
+  #include "/usr/include/stdarg.h"
+- #endif
+  #endif
+  
+  static char *enableFlags = NULL; // controls which DEBUG messages are printed 
+--- 11,20 ----
+  
+  // this seems to be dependent on how the compiler is configured.
+  // if you have problems with va_start, try both of these alternatives
+! #if	defined(HOST_SNAKE) | defined(HOST_SPARC) | defined(HOST_ALPHA)
+  #include <stdarg.h>
+  #else
+  #include "/usr/include/stdarg.h"
+  #endif
+  
+  static char *enableFlags = NULL; // controls which DEBUG messages are printed 
+diff -r -c code-dist/threads/utility.h code/threads/utility.h
+*** code-dist/threads/utility.h	Wed Sep 14 06:02:03 1994
+--- code/threads/utility.h	Mon Apr 17 21:09:41 1995
+***************
+*** 26,32 ****
+  #include "copyright.h"
+  
+  // Miscellaneous useful routines
+! 
+  #include <bool.h>
+  					 	// Boolean values.  
+  						// This is the same definition 
+--- 26,32 ----
+  #include "copyright.h"
+  
+  // Miscellaneous useful routines
+! #include <sys/types.h>
+  #include <bool.h>
+  					 	// Boolean values.  
+  						// This is the same definition 
+***************
+*** 48,54 ****
+  // This is used by Thread::Fork and for interrupt handlers, as well
+  // as a couple of other places.
+  
+! typedef void (*VoidFunctionPtr)(int arg); 
+  typedef void (*VoidNoArgFunctionPtr)(); 
+  
+  
+--- 48,54 ----
+  // This is used by Thread::Fork and for interrupt handlers, as well
+  // as a couple of other places.
+  
+! typedef void (*VoidFunctionPtr)(size_t arg); 
+  typedef void (*VoidNoArgFunctionPtr)(); 
+  
+  
+diff -r -c code-dist/userprog/progtest.cc code/userprog/progtest.cc
+*** code-dist/userprog/progtest.cc	Sun Nov 21 20:49:48 1993
+--- code/userprog/progtest.cc	Mon Apr 17 21:25:10 1995
+***************
+*** 56,63 ****
+  // 	Wake up the thread that requested the I/O.
+  //----------------------------------------------------------------------
+  
+! static void ReadAvail(int arg) { readAvail->V(); }
+! static void WriteDone(int arg) { writeDone->V(); }
+  
+  //----------------------------------------------------------------------
+  // ConsoleTest
+--- 56,63 ----
+  // 	Wake up the thread that requested the I/O.
+  //----------------------------------------------------------------------
+  
+! static void ReadAvail(size_t arg) { readAvail->V(); }
+! static void WriteDone(size_t arg) { writeDone->V(); }
+  
+  //----------------------------------------------------------------------
+  // ConsoleTest
+

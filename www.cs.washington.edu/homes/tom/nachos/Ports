@@ -1,0 +1,25 @@
+Existing ports: MIPS, Sparc (sunos and solaris), Alpha, linux,
+netbsd and freebsd, RS/6000, 68000 Mac (unsupported), and HP.
+
+1
+Can NACHOS run on VAX6420/Ultrix?
+---------------------------------
+Haven't tried it.  It should run over any version of Ultrix, but not 
+definitely sure yet.
+
+2
+Can NACHOS run on NexT?
+-----------------------
+Haven't tried it.  Haven't heard of any report of it.
+
+2
+Can NACHOS run on Windows?
+--------------------------
+No.  Not at this time.  We're planning to port but it turned out
+harder than it appeared; now that Win95 (finally, a real OS from
+Microsoft!) is out, maybe we'll try it again.
+
+2
+Can NACHOS run on SGI?
+----------------------
+Not yet.

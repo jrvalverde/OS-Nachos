@@ -1,0 +1,25 @@
+# Robot behavior guidelines for www.cs.washington.edu
+# See http://info.webcrawler.com/mak/projects/robots/exclusion.html
+
+User-agent: *
+Disallow: /archive 
+Disallow: /htbin-post
+Disallow: /logs
+Disallow: /tmp
+Disallow: /usage
+Disallow: /utils
+Disallow: /education/courses/
+Disallow: /research/projects/lis
+Disallow: /research/projects/cecil/www/www
+
+User-agent: EmailSiphon
+Disallow: /
+
+User-agent: Extractor Pro
+Disallow: /
+
+User-agent: DLExpert
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /

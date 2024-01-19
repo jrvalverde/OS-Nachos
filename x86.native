@@ -1,0 +1,58 @@
+From bah6f@server.cs.virginia.edu Sun May 14 10:34:19 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.34.35]) by orodruin.CS.Berkeley.EDU (8.6.10/8.7.0.Beta0) with ESMTP id KAA22472 for <tea@orodruin.CS.Berkeley.EDU>; Sun, 14 May 1995 10:34:17 -0700
+From: bah6f@server.cs.virginia.edu
+Received: from virginia.edu (uvaarpa.Virginia.EDU [128.143.2.7]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with SMTP id KAA22488 for <tea@cs.berkeley.edu>; Sun, 14 May 1995 10:34:15 -0700
+Received: from server.cs.virginia.edu by uvaarpa.virginia.edu id aa29509;
+          14 May 95 13:34 EDT
+Received: from molly.cs.virginia.edu by uvacs.cs.virginia.edu (4.1/5.1.UVA)
+	id AA16195; Sun, 14 May 95 13:34:01 EDT
+Posted-Date: Sun, 14 May 1995 13:31:56 -0400
+Received: by molly.cs.virginia.edu (5.0/SMI-2.0)
+	id AA21963; Sun, 14 May 1995 13:31:56 -0400
+Date: Sun, 14 May 1995 13:31:56 -0400
+Message-Id: <9505141731.AA21963@molly.cs.virginia.edu>
+To: tea@cs.berkeley.edu
+Subject: New Nachos project extension
+Content-Length: 1835
+Status: RO
+
+Dr. Anderson,
+
+We recently used your Nachos project in our graduate OS class here at
+UVa.  As part of our work this semester, we added an interesting new
+feature to the system.  We have created what we call "Nachos/486": A
+stand-alone version of the Nachos kernel.
+
+Nachos/486 allows the same kernel that runs on the host operating
+system as a process to be re-linked (not recompiled) and run
+stand-alone on Intel hardware.  This stand-alone operating system runs
+native in protected-mode utilizing some of the features of the Intel
+x86 architecture.  Without swamping you in details of how we
+implemented the system, we wanted to mention it to you and see if you
+were interested in hearing more about it.
+
+We think the work has some real potential in that it adds a whole new
+and realistic dimension to the Nachos system: Simulating the
+operating system, and then letting it loose on the hardware.  If you
+are interested in reading more about it, there is a small web page
+about it at "http://www.cs.virginia.edu/~bah6f/nachos486/".  Available
+from that page is the report that accompanied the project, which
+contains summary information and some implementation details.
+
+We look forward to hearing your thoughts on the project and its
+potential.
+
+Adrian Filipi-Martin
+and
+Brian "Paco" Hope
+
+-- 
+Brian "Paco" Hope              Research Assistant, Technical Support Staff
+email: paco@virginia.edu                    Department of Computer Science
+WWW: http://www.cs.virginia.edu/~bah6f/             University of Virginia
+--
+adrian@virginia.edu                ---->>>>| Support your local programmer,
+http://uvacs.cs.virginia.edu/~atf3r/ --->>>| STOP Software Patent Abuses NOW!
+Member: The League for                 -->>| info at ftp.uu.net:/doc/lpf, print
+       Programming Freedom               ->| "join.ps.Z" for an application
+

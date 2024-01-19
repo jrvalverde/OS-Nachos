@@ -1,0 +1,42 @@
+From egli@ens.ascom.ch Thu Oct 12 13:23:10 1995
+Received: from hofmann.CS.Berkeley.EDU (hofmann.CS.Berkeley.EDU [128.32.35.123]) by orodruin.CS.Berkeley.EDU (8.7.Gamma.0/8.7.Gamma.0) with SMTP id NAA22380 for <tea@orodruin.CS.Berkeley.EDU>; Thu, 12 Oct 1995 13:22:58 -0700 (PDT)
+Received: from hslrswi.hasler.ascom.ch (hslrswi.hasler.ascom.ch [139.79.129.1]) by hofmann.CS.Berkeley.EDU (8.6.10/8.6.6.Beta11) with ESMTP id NAA10379 for <nachos@cs.berkeley.edu>; Thu, 12 Oct 1995 13:22:52 -0700
+Received: from ens.ascom.ch by hslrswi.hasler.ascom.ch (8.6.11/6.33)
+	id VAA10573; Thu, 12 Oct 1995 21:22:43 +0100 
+Received: from stva99.ens.ascom.ch by ens.ascom.ch (4.1/SMI-4.1-DNI-7.0.1)
+	id AA28907; Thu, 12 Oct 95 21:24:30 +0100
+Received: from stva45.ens.ascom.ch by stva99.ens.ascom.ch (4.1/SMI-4.1)
+	id AA04895; Thu, 12 Oct 95 21:22:40 +0100
+Date: Thu, 12 Oct 95 21:22:40 +0100
+From: egli@ens.ascom.ch (Egli Roland 3302)
+Message-Id: <9510122022.AA04895@stva99.ens.ascom.ch>
+To: nachos@cs.berkeley.edu
+Subject: Nachos-installation under linux
+Cc: 065224424@videotex.mediatex.ch
+Status: RO
+
+Hello Nachos-Team!
+I am trying to install Nachos V3.4 under linux on a PC.
+After I have made the patches (which are described on your www-sides), I have still the following
+problem:
+to compile the file (maybe also the following) out.c in the /bin subtree, my gcc cannot
+find the files <aouthdr.h>, <scnhdr.h>, <reloc.h>, <syms.h> which should be included by the
+preprocessor.
+Maybe you have an idea, what the problem is, and even better, you know a solution.
+
+Thank you very much for your cooperation.
+
+Roland Egli
+Switzerland
+
+My E-mail adresses are:
+065224424@videotex.mediatex.ch  (prefered)
+t32egli@isbe.ch
+
+------------
+
+Sorry for the delay.  You don't need the disassembler on 
+non-MIPS machines.  So just comment out that part of the makefile.
+
+tom
+
